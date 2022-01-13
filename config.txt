@@ -1,0 +1,16 @@
+Title: Homeworld Remastered: Horde Mode
+
+Tags: HomeworldRM HWRM Homeworld Remastered Singleplayer Horde Endless Arcade
+GameType: HomeworldRM
+ModType: MOD
+BigFilename: HordeMode.big
+WorkshopID:
+
+Description:
+Fight never ending waves of enemy ships in an arcade mode
+---
+Horde Mode: Fear
+MPP/Modkit: Fear
+2.3 Credits: Gearbox, Cloaked, Fear, Trebic, NoOne, Echo, Stuart, QuadS, Kadeshi, and all the other contributors, testers, and players providing feedback. 2.3 Links: [url=https://github.com/HW-PlayersPatch/File_Share/blob/master/ChangeLists/2.3%20Players%20Patch%20-%20Full%20Change%20List.md]Full Change List[/url], [url=http://steamcommunity.com/workshop/filedetails/discussion/1190476337/1621724915806537704/]ReadMe[/url], [url=http://steamcommunity.com/sharedfiles/filedetails/?id=1190476337]Subscribe on Steam[/url], or [url=http://www.moddb.com/mods/homeworld-remastered-players-patch]Download for GOG[/url].
+MP Patch Credits: Fear (Testing help: Xenofix, Lacri, the community over at [url=https://discordapp.com/invite/homeworld]the official Homeworld Discord[/url]). Links: [url=https://github.com/Novaras/mp-patch]GitHub[/url].
+---
