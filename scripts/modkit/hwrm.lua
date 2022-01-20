@@ -93,6 +93,13 @@ if (nil) then
 	function strlower(str)
 	end
 
+	--- Executes the given string as a Lua chunk.
+	---
+	---@param str string
+	---@return any
+	function dostring(str)
+	end
+
 	--- Loads and executes the contents of another lua script at the position this function was invoked.
 	--- This function accepts certain path aliases to make importing files easier: `data`, `bin`, `player`, `locale`, `builtin`, `gamerules`.
 	--- Example: `dofilepath("data:ship/hgn_interceptor/hgn_interceptor.ship");`
