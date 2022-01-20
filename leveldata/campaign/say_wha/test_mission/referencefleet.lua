@@ -22,3 +22,7 @@ RefMissionDifficultyScale = GetMissionDifficultyScale()
 
 multiplierForExtraShips = RefMissionDifficultyScale
 multiplierForExtraRU = RefMissionDifficultyScale
+
+
+-- lol, so when you kill enemies, they can drop powerups
+-- i.e it makes the units close to where it gets picked up gain some ability or weapon upgrade

@@ -1,0 +1,30 @@
+-- localized display name for the UI
+displayName = "say what"
+
+-- 2 = Extra
+contentType = 2
+contentName = "say_wha"
+contentOrdered = 0
+contentChooseText = "eh"
+contentThumbName = "huh"
+contentThumbDesc = "wha"
+contentSort = 0.5	-- Default is 1.0, so 0.5 will appear _before_ others.
+contentRules = "SinglePlayer"	-- A DEFAULT that actually reads from SinglePlayerOptions.lua
+
+ExtFilter = "campaign_saywha"
+
+Mission = { }   -- create a mission structure
+
+-- Mission 1 
+Mission[1] = {
+    postload        = function () end,
+
+    directory       = "Test_Mission",
+    level           = "Test_Mission.level",
+    postlevel       = function () postLevelComplete() end,
+
+    displayName     = "test mission",
+    description     = "ya ya",
+	usepersist = "player:Campaign//HOMEWORLDCLASSIC//persist5.lua",
+	usedefaultpersist = 1,
+}
