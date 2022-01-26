@@ -54,7 +54,44 @@ player[5] = {
   startPos = 1,
 }
 
+dofilepath("data:scripts/modkit/sp_helpers.lua");
+dofilepath("data:scripts/modkit/math_util.lua");
+
+local math = modkit.math;
+
+local carrier_pos = { 0, 600, 3000 };
+MODKIT_MISSION_SHIPS = {
+  player_station = {
+    type = "vgr_commstation",
+    player = 0,
+    position = { 0, 0, 0 },
+    rotation = { 180, random(0, 180), 0 },
+    in_hyperspace = 0
+  },
+  player_initcarrier = {
+    type = "hgn_carrier",
+    player = 0,
+    position = carrier_pos,
+    rotation = { 0, random(0, 100), 0 },
+    in_hyperspace = 0,
+  },
+};
+
+for i = 1, 6 do
+  local pos = {};
+  for axis, value in carrier_pos do
+    pos[axis] = value + (math.pow(-1, random(1, 2)) * random(500, 700));
+  end
+  MODKIT_MISSION_SHIPS["player_collector_" .. i] = {
+    type = "hgn_resourcecollector",
+    player = 0,
+    position = pos
+  };
+end
+
 function DetermChunk()
+  RegisterShips('hi');
+
   addPoint("StartPos0", {16008, -214, 16616}, {0, 238, 0})
   addPoint("StartPos1", {22463, -214, -5482}, {0, -66, 0})
   addPoint("StartPos2", {6292, -214, -22167}, {0, -4, 0})
