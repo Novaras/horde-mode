@@ -3,17 +3,10 @@ if (modkit == nil) then dofilepath("data:scripts/modkit.lua"); end
 rules = modkit.campaign.rules;
 map = modkit.campaign.map;
 
-rules:init("data:leveldata/campaign/say_wha/test_mission/test_mission.level");
-
 dofilepath("data:scripts/custom_code/horde/phase_rewards.lua");
+dofilepath("data:leveldata/campaign/say_wha/test_mission/lib.lua");
 
----@class Wave
----@field value integer
----@field enemy_types string[]
----@field rewards WaveReward
-
----@class Phase
----@field waves Wave[]
+rules:init("data:leveldata/campaign/say_wha/test_mission/test_mission.level");
 
 ---@type table<integer, Phase>
 local PHASE_CONFIGS = {
@@ -51,83 +44,23 @@ local PHASE_CONFIGS = {
 	}
 };
 
-local phase_rules = {};
 -- here we set up the phase rules
 for index, phase in PHASE_CONFIGS do
+	local wave_manager_rule = rules:make(
+		"wave_manager_" .. index,
+		makeWaveManagerRule(),
+		1
+	);
 	phase_rules[index] = rules:make(
 		"phase_" .. index,
-		function (state)
-			if (state._tick == 1) then
-				Subtitle_Message("hello from phase " .. %index, 3);
-				modkit.table.printTbl(state, "rule state");
-			end
-			if (Universe_GameTime() > state._started_gametime + 10) then
-				print("gametime " .. Universe_GameTime() .. " is +10 on our start time: " .. state._started_gametime);
-				return %index;
-			end
-		end,
+		makePhaseRule(index, phase, wave_manager_rule),
 		1
 	);
 end
 
 local phase_manager_rule = rules:make(
 	"phase_manager",
-	function (state, rules)
-		print("hello from phase manager!");
-
-		if (state.phase_rules == nil) then
-			print("manager setting up...");
-			modkit.table.printTbl(
-				modkit.table.keys(%phase_rules),
-				"phase rules"
-			);
-
-			state.phase_rules = %phase_rules;
-
-			function state:allFinished()
-				return modkit.table.all(
-					self.phase_rules,
-					---@param rule Rule
-					function (rule)
-						return rule.status == "returned";
-					end
-				);
-			end
-
-			function state:phaseBegin(rules, index)
-				print("beginning phase " .. index);
-				local phase_rule = self.phase_rules[index];
-				if (phase_rule ~= nil) then
-					self.running = "phase_" .. index;
-					rules:begin(phase_rule);
-					rules:on(
-						self.running,
-						function ()
-							%self:phaseEnded(%rules, %index);
-						end
-					);
-					print("\tpattern: '" .. self.running .. "'");
-				else
-					print("no such rule: phase_" .. index .. ", do nothing...");
-				end
-			end
-
-			---@param rules Rules
-			function state:phaseEnded(rules, index)
-				print("phase " .. index .. " ended, callback triggered! (pattern: '" .. self.running .. "')");
-				self:phaseBegin(rules, index + 1);
-			end
-		end
-
-		if (state:allFinished()) then
-			return "yata";
-		end
-
-		if (state.running == nil) then
-			print("no phase running!");
-			state:phaseBegin(rules, 1);
-		end
-	end,
+	makePhaseManagerRule(),
 	1
 );
 
@@ -135,6 +68,10 @@ rules:begin(phase_manager_rule);
 rules:on(
 	phase_manager_rule.id,
 	function ()
-		Subtitle_Message("all done!", 5);
+		Subtitle_Message("all phases complete!", 5);
 	end
 );
+
+for id, ship in GLOBAL_MISSION_SHIPS:all() do
+	ship:print();
+end
