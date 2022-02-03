@@ -6,6 +6,7 @@ if (modkit.MemGroup == nil) then dofilepath("data:scripts/modkit/memgroup.lua");
 
 if (H_CAMPAIGN == nil) then
 	local campaign = {};
+	modkit.campaign = {};
 
 	if (GLOBAL_RULES == nil) then
 
@@ -217,6 +218,18 @@ if (H_CAMPAIGN == nil) then
 				GLOBAL_RULES.__listeners[listener.pattern] = nil; -- unsubscribe
 			end
 		end
+
+		
+		-- local new_universe_ships_group = Universe_GetAllActiveShips(SobGroup_Fresh("__mk_univese_ships"));
+		-- if (modkit.campaign.universe_ships_group) then
+		-- 	local diff_group = SobGroup_Fresh("__mk_universe_ships_diff");
+		-- 	-- sub the old run ships from the current run ships to find newbies
+		-- 	SobGroup_Substract(diff_group, new_universe_ships_group, modkit.campaign.universe_ships_group);
+			
+		-- 	-- now we make the assumption that new ships are probably spaced apart
+		-- else
+		-- 	modkit.campaign.universe_ships_group = new_universe_ships_group;
+		-- end
 	end
 
 	if (OnInit == nil) then
