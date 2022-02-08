@@ -1,0 +1,20 @@
+StartWeaponConfig(NewWeaponType,"Gimble","Missile","horde_tinymissile","Special Attack", 0, 2200, 0,0,0,0,1,1,1, 12, 0,0,1,0,120,120,0.1,"Normal",1,0,0);
+AddWeaponResult(NewWeaponType,"Hit","SpawnWeaponFire","Target",0,0,"horde_flakburst");
+AddWeaponResult(NewWeaponType,"Miss","SpawnWeaponFire","Target",0,0,"horde_flakburst");
+setPenetration(NewWeaponType,5,1,
+{PlanetKillerArmour=0},
+{SwarmerArmor=0.10},
+{SpaceMineArmor=1});
+setAccuracy(NewWeaponType,1,
+{Swarmer=0.2},
+{SpaceMine=0.7},
+{Torpedo=0},
+{HeavyMissile=0},
+{SmallMissile=0},
+{Fighter=0.1},
+{Fighter_hw1=0.4},
+{Corvette=0.6},
+{Corvette_hw1=0.6},
+{munition=0});
+setAngles(NewWeaponType, 15, 0, 0, 0, 0);
+setFireMultFactor(NewWeaponType, 1.0);

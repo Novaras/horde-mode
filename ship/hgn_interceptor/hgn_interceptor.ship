@@ -166,6 +166,7 @@ addAbility(NewShipType,"RetireAbility",1,0);
 
 LoadModel(NewShipType,1);
 StartShipWeaponConfig(NewShipType,"Hgn_KineticAutoGun","Weapon_FrontGun","Fire");
+StartShipWeaponConfig(NewShipType,"hgn_interceptorflak","Weapon_FrontGun","Fire");
 addShield(NewShipType,"EMP",110,20);
 NewShipType.battleScarCoverage=0
 NewShipType.sobDieTime=2
