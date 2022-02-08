@@ -210,4 +210,4 @@ NewShipType.canSurround=1
 NewShipType.canRetireSubSystems=1
 
 
-addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "hgn_shipyard", 1);
+addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "horde_shipyard", 1);
