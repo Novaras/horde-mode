@@ -157,7 +157,6 @@ function gravwell_proto:AIOnly()
 			local none_passed = 1;
 			for name, condition in activation_conditions do
 				if (condition() ~= nil) then -- passed
-					self:print("AI gravwell passed condition " .. name .. "! Activate the grav!");
 					none_passed = nil;
 					if (self.active == 0) then
 						self:customCommand();
@@ -166,7 +165,6 @@ function gravwell_proto:AIOnly()
 				end
 			end
 			if (none_passed and self.active == 1) then
-				self:print("AI gravwell failed all conditions, disable the well");
 				self:customCommand();
 			end
 		end
@@ -188,12 +186,9 @@ function gravwell_proto:start()
 end
 
 function gravwell_proto:go()
-	self:print("hi");
 	local new_trappables = self:calculateNewTrappables(); -- calculate which ships to stun this pass
-	-- self:print("new trappables: " .. modkit.table.length(new_trappables));
 	self:setTrapped(new_trappables, 1); -- stun them
 	local difference_from_last = modkit.table.difference(self.previous_tick_trapped, new_trappables); -- any from last who didnt pass this time = diff to unstun
-	-- self:print("diff from last: " .. modkit.table.length(difference_from_last));
 	self:setTrapped(difference_from_last, 0); -- unstun ships from last time which are not in our current batch to stun
 	self:ownEffects(1);
 	self:rememberUniqueTrapped(new_trappables); -- record any new ships we havent recorded interacting with yet (used for cleanup)

@@ -13,6 +13,8 @@ if (H_DRIVER == nil) then
 	---@class GLOBAL_SHIPS : SheduledFilters, MemGroup
 	---@field _entities Ship[]
 	---@field all fun(): Ship[]
+	---@field find fun(self: GLOBAL_SHIPS, predicate: ShipFilterPredicate): Ship | 'nil'
+	---@field filter fun(self: GLOBAL_SHIPS, predicate: ShipFilterPredicate): Ship[]
 	GLOBAL_SHIPS = modkit.MemGroup.Create("mg-ships-global");
 
 	initPlayers(); -- modkit/player.lua

@@ -16,8 +16,6 @@ end
 defense_fighter_proto = {
 	nearby_radius = 4500,
 	-- guard_sphere_positions = modkit.shapes:icosahedron(),
-	-- guard_targets_filter_ev = nil,
-	-- guard_targets = {},
 	guard_pos_index = 1
 };
 
@@ -59,17 +57,26 @@ function defense_fighter_proto:nearbyEnemyMissileSelection()
 	return all_missiles;
 end
 
+function defense_fighter_proto:guardTargets()
+	local targets = {};
+	for _, ship in GLOBAL_SHIPS:all() do
+		 if (self:guarding(ship)) then
+			 modkit.table.push(targets, ship);
+		 end
+	end
+	return targets;
+end
+
 function defense_fighter_proto:attackNearbyEnemyMissiles()
 	local enemy_missiles = self:nearbyEnemyMissileSelection();
 	if (enemy_missiles and self:ROE() ~= PassiveROE) then
-		self.guard_targets = self.guard_targets or self:guarding();
 		SobGroup_AttackSelection(self.player.id, self.own_group, enemy_missiles, 1);
 	end
 end
 
 function defense_fighter_proto:strictGuardDistance()
-	if (self.guard_targets) then -- means we are in an attack phase
-		if (self:distanceTo(self.guard_targets[1]) > 1000) then
+	if (modkit.table.length(self:guardTargets()) > 0) then -- means we are in an attack phase
+		if (self:distanceTo(self:guardTargets()[1]) > 1000) then
 			self:move(self:nextGuardPos()); -- script tick is 1s, should be fine
 		end
 	end
@@ -80,8 +87,6 @@ function defense_fighter_proto:update()
 		self:attackNearbyEnemyMissiles();
 		if (self:guarding()) then
 			self:strictGuardDistance();
-		else
-			self.guard_targets = nil; -- only used to return to guard after attack
 		end
 	end
 end
