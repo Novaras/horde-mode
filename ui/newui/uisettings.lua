@@ -463,6 +463,13 @@ GameScreens = {
 	},	
 
 	{
+		-- This is the LuaScript that has the code for the screen
+		name = "HordeModeScreen",
+		filename = "DATA:\\UI\\NewUI\\Horde\\HordeModeScreen.lua",
+		activated = 0, -- Activate on front end startup (default is zero)
+	},
+
+	{
 		name = "PlaybackMenu",
 		filename = "DATA:\\UI\\NewUI\\Playback\\PlaybackMenu.lua",
 		activated = 0,
@@ -525,13 +532,13 @@ GameScreens = {
 		activated =0, -- Activate on front end startup (default is zero)
 		type = "GameBalanceScreen",  -- Type of menu (default is UIScreen)
 	},
-	{
-		-- This is the LuaScript that has the code for the screen
-		name = "DeveloperScreen",
-		filename = "DATA:\\UI\\NewUI\\Developer\\DeveloperScreen.lua",
-		activated =0, -- Activate on front end startup (default is zero)
-		type = "DeveloperScreen",  -- Type of menu (default is UIScreen)
-	},
+	-- {
+	-- 	-- This is the LuaScript that has the code for the screen
+	-- 	name = "DeveloperScreen",
+	-- 	filename = "DATA:\\UI\\NewUI\\Developer\\DeveloperScreen.lua",
+	-- 	activated =0, -- Activate on front end startup (default is zero)
+	-- 	type = "DeveloperScreen",  -- Type of menu (default is UIScreen)
+	-- },
 	{
 		-- This is the LuaScript that has the code for the screen
 		name = "InGameModScreen",

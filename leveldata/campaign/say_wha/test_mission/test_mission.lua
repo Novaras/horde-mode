@@ -13,12 +13,12 @@ local PHASE_CONFIGS = {
 	[1] = {
 		waves = {
 			[1] = {
-				value = 1000,
+				value = 1500,
 				enemy_types = {
-					"vgr_interceptor",
-					"tai_multiguncorvette"
+					"tai_defender",
+					"kus_attackbomber",
+					"kus_heavycorvette"
 				},
-				rewards = WAVE_REWARDS[0]
 			},
 			[2] = {
 				value = 1500,
@@ -27,20 +27,54 @@ local PHASE_CONFIGS = {
 					"kus_attackbomber",
 					"kus_lightcorvette"
 				},
-				rewards = WAVE_REWARDS[1]
 			},
+			[3] = {
+				value = 2250,
+				enemy_types = {
+					"kus_assaultfrigate",
+					"tai_assaultfrigate",
+					"hgn_interceptor",
+					"tai_defensefighter"
+				}
+			}
 		},
+		rewards = PHASE_REWARDS[1]
 	},
 	[2] = {
 		waves = {
 			[1] = {
 				value = 4000,
 				enemy_types = {
-					"tai_destroyer"
-				},
-				rewards = WAVE_REWARDS[2]
+					"tai_destroyer",
+					"vgr_commandcorvette",
+					"kus_assaultfrigate",
+					"vgr_heavymissilefrigate"
+				}
+			},
+			[2] = {
+				value = 5000,
+				enemy_types = {
+					"kus_missiledestroyer",
+					"tai_gravwellgenerator",
+					"vgr_heavymissilefrigate",
+					"vgr_commandcorvette",
+					"hgn_torpedofrigate"
+				}
+			},
+			[3] = {
+				value = 7500,
+				enemy_types = {
+					"kus_heavycruiser",
+					"tai_destroyer",
+					"hgn_ioncannonfrigate",
+					"tai_defender",
+					"kus_defender",
+					"kus_gravwellgenerator",
+					"tai_fieldfrigate"
+				}
 			}
 		},
+		rewards = PHASE_REWARDS[2]
 	}
 };
 
@@ -58,20 +92,40 @@ for index, phase in PHASE_CONFIGS do
 	);
 end
 
-local phase_manager_rule = rules:make(
-	"phase_manager",
-	makePhaseManagerRule(),
-	1
-);
-
-rules:begin(phase_manager_rule);
-rules:on(
-	phase_manager_rule.id,
+local grace_period_rule = rules:make(
+	"grace_period",
 	function ()
-		Subtitle_Message("all phases complete!", 5);
-	end
+		if (Universe_GameTime() > 20) then
+			return 1;
+		end
+	end,
+	0.5
 );
+rules:begin(grace_period_rule);
 
-for id, ship in GLOBAL_MISSION_SHIPS:all() do
-	ship:print();
-end
+rules:on(
+	grace_period_rule.id,
+	function ()
+		local phase_manager_rule = rules:make(
+			"phase_manager",
+			makePhaseManagerRule(),
+			1
+		);
+		rules:begin(phase_manager_rule);
+		rules:on(
+			phase_manager_rule.id,
+			function ()
+				Subtitle_Message("all phases complete!", 5);
+			end
+		);
+	end
+)
+
+SetAlliance(0, 2);
+SetAlliance(2, 0);
+
+Player_RestrictBuildOption(0, "Hgn_SY_Production_CapShip");
+
+Player_RestrictResearchOption(0, "MothershipHealthUpgrade1");
+Player_RestrictResearchOption(0, "MothershipMAXSPEEDUpgrade1");
+Player_RestrictResearchOption(0, "MothershipBUILDSPEEDUpgrade1");

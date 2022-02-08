@@ -4,44 +4,58 @@
 ---@field effect PowerEffect
 ---@field fraction number
 
----@class WaveReward
+---@class RewardOption
 ---@field description string
 ---@field rus integer
 ---@field technology string[]
 ---@field power_ups PowerUp[]
----@field tier '1'|'2'|'3'|'4'|'5'
+---@field build_options string[]
+---@field research_options string[]
 
----@type WaveReward[]
-WAVE_REWARDS = {
-	[0] = {
-		description = "500 ru (t1)",
-		rus = 500,
-		tier = 1,
-	},
+---@class PhaseReward
+---@field option_a RewardOption
+---@field option_b RewardOption
+
+---@type PhaseReward[]
+PHASE_REWARDS = {
 	[1] = {
-		description = "300ru + 5% dmg (t1)",
-		rus = 300,
-		power_ups = {
-			{
-				effect = "WeaponDamage",
-				fraction = 0.05,
-			}
+		option_a = {
+			description = "+1000 ru\n+10% movespeed",
+			rus = 1000,
+			power_ups = {
+				{
+					effect = "MaxSpeed",
+					fraction = 0.05
+				}
+			},
 		},
-		tier = 1,
+		option_b = {
+			description = "+1000 ru\n+Capital Ship Production",
+			build_options = {
+				"Hgn_SY_Production_CapShip"
+			}
+		}
 	},
 	[2] = {
-		description = "1000ru + 5% dmg + 5% build speed (t2)",
-		rus = 1000,
-		power_ups = {
-			{
-				effect = "WeaponDamage",
-				fraction = 0.05
+		option_a = {
+			description = "+500 ru\n+5% dmg",
+			rus = 500,
+			power_ups = {
+				{
+					effect = "WeaponDamage",
+					fraction = 0.05,
+				}
 			},
-			{
-				effect = "BuildSpeed",
-				fraction = 0.05
-			}
 		},
-		tier = 2
+		option_b = {
+			description = "+750 ru\n+5% movespeed",
+			rus = 750,
+			power_ups = {
+				{
+					effect = "MaxSpeed",
+					fraction = 0.05
+				}
+			}
+		}
 	}
 };
