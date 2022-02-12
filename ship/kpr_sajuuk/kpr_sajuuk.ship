@@ -167,3 +167,5 @@ setEngineGlow(NewShipType,1,1,1.01,15,325,50,1.75,{1,.47,.0, 0.2});
 loadShipPatchList(NewShipType,"data:sound/sfx/ship/misc/",0,"Engines/SajuukEng","",1,"Ambience/SajuukAmb","");
 NewShipType.noCombatGrouping=1
 NewShipType.canSurround=1
+
+addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "kpr_sajuuk", 1);

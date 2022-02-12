@@ -145,7 +145,6 @@ StartShipWeaponConfig(NewShipType,"Kad_IonCannon","Weapon_Gun0","Weapon_Gun0");
 StartShipWeaponConfig(NewShipType,"Kad_IonCannon2","Weapon_Gun1","Weapon_Gun1");   
 StartShipWeaponConfig(NewShipType,"Kad_IonCannon3","Weapon_Gun2","Weapon_Gun2"); 
 StartShipWeaponConfig(NewShipType,"Kad_IonCannon4","Weapon_Gun3","Weapon_Gun3"); 
-addCustomCode(NewShipType,"data:ship/Kad_MultiBeamFrigate/Kad_MultiBeamFrigate.lua","","","updateKad_MultiBeamFrigate","","Kad_MultiBeamFrigate",1.25)
 addShield(NewShipType,"EMP",310,20);
 NewShipType.battleScarCoverage=2
 NewShipType.battleScarBudgetLow = 400
@@ -168,3 +167,5 @@ NewShipType.maxFalloffForce=500*10
 NewShipType.explosiveDamageOnDeath=195	
 NewShipType.radiusDamageEvadeMod=1.1	
 NewShipType.canSurround=1
+
+addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "kad_multibeamfrigate", 1);

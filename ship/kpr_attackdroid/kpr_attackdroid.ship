@@ -145,3 +145,5 @@ setEngineTrail(NewShipType,0,3,"trail_ribbon.tga",0.1,0.5,0.025,7);
 setEngineBurn(NewShipType,25,0.5,1,12,0,0.7,0.1,35);
 setEngineGlow(NewShipType,1,1,1.02,20,300,50,1.5,{0.17, 1, 0, 0.25});
 loadShipPatchList(NewShipType,"data:sound/sfx/ship/misc/",0,"Engines/KeeperDroidEng","");
+
+addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "kpr_attackdroid", 1);

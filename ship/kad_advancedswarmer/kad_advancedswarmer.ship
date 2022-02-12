@@ -146,7 +146,6 @@ StartShipWeaponConfig(NewShipType,"Kad_SwarmerGun","Weapon_Gun1","Weapon_Gun1");
 StartShipWeaponConfig(NewShipType,"Kad_SwarmerGun","Weapon_Gun2","Weapon_Gun2");
 StartShipWeaponConfig(NewShipType,"Kad_SwarmerGun","Weapon_Gun3","Weapon_Gun3");
 StartShipHardPointConfig(NewShipType,"FuelTank","Hardpoint_FuelTank","System","Innate","Damageable","HW1_FighterTank","","","","","","","","");
-addCustomCode(NewShipType,"data:ship/Kad_Swarmer/Kad_Swarmer.lua","","createSwarmerFuel","updateSwarmerFuel","destroySwarmerFuel","AdvancedSwarmer",0.33)
 addShield(NewShipType,"EMP",75,20);
 NewShipType.battleScarCoverage=1
 NewShipType.sobDieTime=2
@@ -170,3 +169,5 @@ NewShipType.homingDistance=2000
 NewShipType.homingDelay=0.5
 NewShipType.strikeGroupSpeed=5000
 NewShipType.canSurround=0
+
+addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "kad_advancedswarmer", 1);
