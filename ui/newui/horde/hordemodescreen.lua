@@ -17,6 +17,7 @@ end
 ---@field style string
 ---@field layout table
 ---@field hotkey_id integer
+---@field custom_num number
 
 --- Returns a table defining a button.
 ---@param btn_config ButtonConfig
@@ -29,11 +30,40 @@ local makeButton = function (btn_config)
 	layout = btn_config.layout or BTN_FOOTER_STD_LAYOUT;
 	style = btn_config.style or "FEButtonStyle1_Outlined";
 	onClick = btn_config.onClick or NOOP;
+	custom_data = btn_config.custom_num;
 
 	local btn = NewMenuButton(name, text, label, hotkey_id, layout, style, onClick);
 	btn.Layout.size_WH = { w = 0.45, h = STD_BUTTON_HEIGHT, wr = "par", hr = "scr" };
+	btn.customData = custom_data;
 	return btn;
 end;
+
+local makeLabelsFromRewards = function()
+	local labels = {};
+	for _, R in _p do
+		modkit.table.push(labels, {
+			type = "Frame",
+			Layout = {
+				size_WH = { w = 0, h = 0, wr = "px", hr = "px" }
+			},
+			enabled = 0, -- if enabled, is either a or b
+			hidden = 1 -- if not hidden, must be b
+			;
+			{
+				type = "TextLabel",
+				name = R.name,
+				autosize=1,
+				Text = {
+					text = "",
+					pixels = 0,
+				},
+				giveParentMouseInput = 1,
+				--backgroundColor = {0,255,0,255},
+			}
+		});
+	end
+	return labels;
+end
 
 HordeModeScreen = {
 	size = {0, 0, 800, 600},
@@ -68,7 +98,7 @@ HordeModeScreen = {
 			WindowTemplate = PANEL_WINDOWSTYLE,
 
 			TitleText =	"Select a boon", --Bentusi Exchange
-			name = "m_frmDialogWindow",
+			name = "hordescreen_root",
 			-- SubtitleText = "$4913",	--Choose//
 			Layout = {
 				pos_XY = {	x=0.5, y=0.5, xr="px", yr="px",},
@@ -124,7 +154,8 @@ HordeModeScreen = {
 					},
 					{
 						type = "TextLabel",
-						name = "lbl_option_a",
+						name = "reward_a_desc",
+						wrapping = 1,
 						Layout = {
 							margin_RB = { r = 0, b = 24, rr = "px", br = "px" }
 						},
@@ -177,7 +208,8 @@ HordeModeScreen = {
 					},
 					{
 						type = "TextLabel",
-						name = "lbl_option_b",
+						name = "reward_b_desc",
+						wrapping = 1,
 						Layout = {
 							margin_RB = { r = 0, b = 24, rr = "px", br = "px" }
 						},
@@ -225,7 +257,7 @@ HordeModeScreen = {
 				},
 			},
 			-- NewMenuButton("m_btnAccept_A", "Accept Option A", "Option A", 0, BTN_LAYOUT, "FEButtonStyle1_Outlined"),
-			makeButton({ name = "m_btnAccept_A", text = "Accept Option A", onClick = makeButtonCallbackStr("option_a") }),
+			makeButton({ name = "btn_a", text = "Accept Option A", onClick = "dofilepath('data:scripts/modkit/scope_state.lua'); s = makeStateHandle(); s({ selected = s().rewards.a }); UI_HideScreen('HordeModeScreen');", custom_num = 0 }),
 			{ -- seperator
 				type = "Frame",
 				Layout = {
@@ -233,13 +265,61 @@ HordeModeScreen = {
 				},
 			},
 			-- NewMenuButton("m_btnAccept_B", "Accept Option B", "Option B", 0, BTN_FOOTER_STD_LAYOUT, "FEButtonStyle1_Alert_Outlined_Chipped"),
-			makeButton({ name = "m_btnAccept_B", text = "Accept Option B", onClick = makeButtonCallbackStr("option_b") }),
+			makeButton({ name = "btn_b", text = "Accept Option B", onClick = "dofilepath('data:scripts/modkit/scope_state.lua'); s = makeStateHandle(); s({ selected = s().rewards.b }); UI_HideScreen('HordeModeScreen');", custom_num = 0 }),
 			{ -- right margin (Layout margins are really weird)
 				type = "Frame",
 				Layout = {
 					size_WH = {w = 0.025, h = 1, wr = "par", hr = "par",},
 				},
 			},
+		},
+		{ -- hidden frame we use to store state with
+			type = "Frame",
+			Layout = {
+				size_WH = { w = 0, h = 0, wr = "px", hr = "px" }
+			}
+			;
+			makeLabelsFromRewards(),
+			{
+				type = "DropDownListBox",
+				name  = "selectme",
+				backgroundColor = COLOR_LISTITEM,
+				BackgroundGraphic = BORDER_GRAPHIC_BUILDFRAME_HORIZ,
+				dropDownListBoxStyle = "IGDropDownListBoxStyle",
+				autosize = 1,
+				
+				Layout = {		
+					--pos_XY = { y = 0.0, yr = "par" },							
+					size_WH = {	w = 200, h = DROPDOWN_HEIGHT, wr = "px", hr = "scr" },
+				},
+
+				visible = 1,
+				
+	
+				ListBox = {
+					type = "ListBox",
+					name = "selectme_lb",
+					Layout = {							
+						size_WH = {	w = 1, h = 1.0, wr = "par", hr = "px" },										
+					},
+					backgroundColor = "IGColorBackground1",
+					BackgroundGraphic = BORDER_GRAPHIC_BUILDFRAME_HORIZ,
+					onItemSelect  = "AIMenu_SelectPlayer(%c1)",
+
+					ItemToClone = {
+						type = "TextListBoxItem",
+						buttonStyle = "FEListBoxItemButtonStyle",
+						resizeToListBox = 1,
+						Text = {
+							textStyle = "FEListBoxItemTextStyle",
+							text = "",
+						},
+					},
+
+				},
+	
+				helpTip = "Select CPU to Debug", -- SELECT BUILD SHIP
+			}
 		},
 	},
 }

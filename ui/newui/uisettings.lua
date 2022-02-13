@@ -470,6 +470,13 @@ GameScreens = {
 	},
 
 	{
+		-- This is the LuaScript that has the code for the screen
+		name = "DefaultStateScreen",
+		filename = "DATA:\\UI\\NewUI\\DefaultStateScreen.lua",
+		activated = 0, -- Activate on front end startup (default is zero)
+	},
+
+	{
 		name = "PlaybackMenu",
 		filename = "DATA:\\UI\\NewUI\\Playback\\PlaybackMenu.lua",
 		activated = 0,

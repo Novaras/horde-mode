@@ -260,10 +260,23 @@ function makePhaseManagerRule()
 				print("phase " .. index .. " ended, callback triggered! (pattern: '" .. self.running_pattern .. "')");
 				self.running_pattern = nil;
 				self.running_index = nil;
-				UI_SetTextLabelText("HordeModeScreen", "lbl_option_a", PHASE_REWARDS[index].option_a.description);
-				UI_SetTextLabelText("HordeModeScreen", "lbl_option_b", PHASE_REWARDS[index].option_b.description);
-				UI_ShowScreen("HordeModeScreen", eTransition);
-				Universe_Pause(1, 1.5);
+
+				makeStateHandle()({
+					awaiting_ui = 1
+				});
+
+				-- UI_SetTextLabelText("HordeModeScreen", "lbl_option_a", reward_a.description);
+				-- UI_SetTextLabelText("HordeModeScreen", "lbl_option_b", reward_b.description);
+
+				-- makeStateHandle()({
+				-- 	rewards = {
+				-- 		a = reward_a.name,
+				-- 		b = reward_b.name
+				-- 	}
+				-- });
+
+				-- UI_ShowScreen("HordeModeScreen", eTransition);
+				-- Universe_Pause(1, 1.5);
 			end
 		end
 
@@ -276,9 +289,9 @@ function makePhaseManagerRule()
 
 		if (state.initialised == 1 and state.running_index == nil) then -- init but no phase = waiting for UI result
 			
-			if (UI_IsScreenActive("HordeModeScreen") == 0) then -- above but no active screen = UI result available
+			if (UI_IsScreenActive("HordeModeScreen") == 0 and makeStateHandle()().awaiting_ui == 0) then -- above but no active screen = UI result available
 				print("UI result available!");
-				Universe_Pause(0, 1.5);
+				Universe_Pause(0, 0);
 				state:phaseBegin(rules);
 			else
 				print("awaiting UI result");
@@ -286,11 +299,10 @@ function makePhaseManagerRule()
 		end
 
 		if (state.initialised == nil) then
+			makeStateHandle()({
+				awaiting_ui = 0
+			});
 			state.initialised = 1;
-			state.power_ups = {
-				max_speed = 1,
-				weapon_damage = 1
-			};
 			print("no phase running!");
 			state:phaseBegin(rules);
 		end

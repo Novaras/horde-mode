@@ -1,10 +1,6 @@
--- this ship is sued to track state between scopes
--- - mission scope
--- - UI scope
--- - ship scripts scope
--- in order for these to share info with eachother, various attributes of this ship are used to encode this information
--- the health is used to track the phase reward dialogue result
--- the position is used to track { phase_index, wave_index, _ }
+if (makeStateHandle == nil) then
+	dofilepath("data:scripts/modkit/scope_state.lua");
+end
 
 if (REWARD_DIALOG_TRACKER_ROE_VALUES == nil) then
 	dofilepath("data:leveldata/campaign/say_wha/test_mission/lib.lua");
@@ -15,74 +11,171 @@ if (PHASE_REWARDS == nil) then
 end
 
 ---@class HordeTrackerProto : Ship
+---@field human_player Player
+---@field rewards { a: _Rew, b: _Rew }
+---@field doing_ui '0' | '1'
 horde_tracker_proto = {
+	rewards = nil
 };
+
+---@return _Rew
+function horde_tracker_proto:getSelectedReward()
+	local state = makeStateHandle();
+	local selected = state().selected;
+
+	modkit.table.printTbl(state(), "tracker state()");
+	if (selected and selected ~= -1) then
+		local r = modkit.table.find(_p, function (R)
+			return R.name == %state().selected;
+		end);
+
+		if (r) then
+			state({ selected = -1 });
+		end
+		return r;
+	end
+end
+
+function horde_tracker_proto:pickRewards()
+	local meetsReqs = function (reqs, type)
+		if (reqs == nil or reqs[type] == nil) then
+			return "return nil;";
+		end
+		---@type Ship[]
+		local builders = modkit.table.filter(%self.human_player:ships(), function (ship)
+			return ship:canBuild() == 1;
+		end);
+		local predicates = {
+			subsystem = function (match)
+				return modkit.table.find(%builders, function (builder)
+					return builder:hasSubsystem(%match);
+				end);
+			end
+		};
+		local predicate = predicates[type];
+
+		local pattern_exec = "" .. (reqs[type] or "");
+		pattern_exec = gsub(pattern_exec, " and ", " & ");
+		pattern_exec = gsub(pattern_exec, " or ", " | ");
+		-- here we are constructing a LUA logic expression which will tell us the truthiness of the supplied pattern
+		-- (we construct something like: "return 1 and nil and nil or (1 and 1)")
+		pattern_exec = gsub(pattern_exec, "([%w_]+)", function(match)
+			print("match: " .. match);
+			if (%predicate(match)) then
+				return "1";
+			end
+			return "nil";
+		end);
+		pattern_exec = gsub(pattern_exec, " & ", " and ");
+		pattern_exec = gsub(pattern_exec, " | ", " or ");
+		pattern_exec = gsub(pattern_exec, "^%s*(.-)%s*$", "%1");
+		print("return " .. pattern_exec);
+		return "return " .. pattern_exec;
+	end
+
+	---@type _Rew
+	local reward_a = modkit.table.randomEntry(_p)[2];
+	if (dostring(meetsReqs(reward_a.requires, 'subsystem')) ~= 1) then
+		print("\ttehcnically illegal");
+	end
+
+	local reward_b = modkit.table.randomEntry(_p)[2];
+	while(reward_a.name == reward_b.name) do
+		reward_b = modkit.table.randomEntry(_p)[2];
+	end
+	if (dostring(meetsReqs(reward_b.requires, 'subsystem')) ~= 1) then
+		print("\ttehcnically illegal");
+	end
+
+	self.rewards = {
+		a = reward_a,
+		b = reward_b
+	};
+
+	local state = makeStateHandle();
+	state({ rewards = {
+		a = reward_a.name,
+		b = reward_b.name
+	} });
+end
+
+function horde_tracker_proto:showUIIfWaiting()
+	local phases_paused = makeStateHandle()().awaiting_ui;
+	if (phases_paused == 1) then
+		print("tracker showing ui screen");
+		self:pickRewards();
+		UI_ShowScreen("HordeModeScreen", ePopup);
+
+		UI_SetTextLabelText("HordeModeScreen", "reward_a_desc", self.rewards.a.description);
+		UI_SetTextLabelText("HordeModeScreen", "reward_b_desc", self.rewards.b.description);
+		self.doing_ui = 1;
+	end
+	return self.doing_ui;
+end
 
 function horde_tracker_proto:update()
 	print("tracker health: " .. self:HP());
 
 	if (self.init == nil) then
-		self:ROE(PassiveROE);
 		self.init = 1;
-		self.player_carrier = GLOBAL_SHIPS:find(function (ship)
-			return ship.type_group == "hgn_carrier";
-		end);
+		self.doing_ui = 0;
+		self.human_player = GLOBAL_PLAYERS:get(0);
 	end
 
-	-- ROE is set in `hordemodescreen.lua` by the dialogue buttons
-	-- OffensiveROE = option A
-	-- DefensiveROE = option B
-	-- PassiveROE = idle
-	if (self:ROE() ~= PassiveROE) then
-		print("ok, seems like the ui set our ROE");
-		self:issueRewards();
-		self:ROE(PassiveROE); -- reset
+	if (self.doing_ui == 0) then
+		self:showUIIfWaiting();
 	end
 
-	self:manageEnemies();
-end
-
-function horde_tracker_proto:issueRewards()
-	---@param rewards RewardOption
-	local issueOptionRewards = function (rewards)
-		local player = GLOBAL_PLAYERS:get(0);
-
-		if (rewards.rus) then
-			print("adding rus: " .. rewards.rus);
-			player:RU(player:RU() + rewards.rus);
+	local reward = self:getSelectedReward();
+	if (reward) then
+		if (reward.build_options) then
+			print("apply build opts");
+			for _, opt in reward.build_options do
+				print("\topt: " .. opt);
+				self.human_player:restrictBuildOption(opt, 0);
+			end
 		end
 
-		if (rewards.power_ups) then
-			print("adding rewards");
-			modkit.table.printTbl(rewards.power_ups);
-			for _, power in rewards.power_ups do
-				print("looks like we got a powerup: " .. power.effect .. ", fraction is " .. power.fraction);
-				for _, ship in player:ships() do
-					local current_val = ship:multiplier(power.effect);
-					ship:multiplier(power.effect, current_val + power.fraction);
+		if (reward.research_options) then
+			print("apply res opts");
+			for _, opt in reward.research_options do
+				print("\topt: " .. opt);
+				self.human_player:restrictResearchOption(opt, 0);
+			end
+		end
+
+		if (reward.research_grant) then
+			print("apply grants");
+			for _, grant in reward.research_grant do
+				print("\tgrant: " .. grant);
+				self.human_player:grantResearchOption(grant);
+			end
+		end
+
+		if (reward.spawn) then
+			print("spawn ships");
+			for _, spawn_data in reward.spawn do
+				for i = 1, spawn_data.count do
+					SobGroup_SpawnNewShipInSobGroup(
+						spawn_data.player,
+						spawn_data.type,
+						"-",
+						SobGroup_Fresh(DEFAULT_SOBGROUP),
+						Volume_Fresh("-", { 0 + (50 * i), 1200, 0 })
+					);
 				end
 			end
 		end
 
-		if (rewards.build_options) then
-			for _, option in rewards.build_options do
-				Player_UnrestrictBuildOption(0, option);
-			end
-		end
+		self.doing_ui = 0;
+		self.rewards = -1;
+		makeStateHandle()({
+			awaiting_ui = 0,
+			rewards = -1;
+		});
 	end
 
-	-- 1 / i = Hc
-	-- i = round(1 / Hc)
-	local phase_reward_options = PHASE_REWARDS[modkit.math.round(1 / self:HP())];
-	modkit.table.printTbl(phase_reward_options, "reward options?");
-
-	if (self:ROE() == REWARD_DIALOG_TRACKER_ROE_VALUES.option_a) then
-		print("tracker judges option A selected from dialogue");
-		issueOptionRewards(phase_reward_options.option_a);
-	elseif (self:ROE() == REWARD_DIALOG_TRACKER_ROE_VALUES.option_b) then
-		print("tracker judges option B selected from dialogue");
-		issueOptionRewards(phase_reward_options.option_b);
-	end
+	self:manageEnemies();
 end
 
 -- ---@param ship Ship
@@ -113,10 +206,10 @@ function horde_tracker_proto:manageEnemies()
 	};
 
 	for _, ship in player_enemy_ships do
-		if (ship:isFighter() == nil) then
-			print("control for " .. ship.own_group .. "(a " .. ship.type_group .. ")");
-			print("\tcommand is " .. ship:currentCommand() .. " (COMMAND_Idle is " .. COMMAND_Idle .. ")");
-		end
+		-- if (ship:isFighter() == nil) then
+		-- 	print("control for " .. ship.own_group .. "(a " .. ship.type_group .. ")");
+		-- 	print("\tcommand is " .. ship:currentCommand() .. " (COMMAND_Idle is " .. COMMAND_Idle .. ")");
+		-- end
 
 		if (modkit.table.includesValue(guard_types, ship.type_group)) then
 			local attackers = modkit.table.filter(player_enemy_ships, function (target_ship)
