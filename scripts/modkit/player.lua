@@ -92,8 +92,13 @@ if (modkit_player_proto == nil) then
 
 	-- === research stuff ===
 
+	--- Returns whether or not this play is capable of researching `item`.
+	---
+	---@param item string | table
+	---@return '0'|'1'
 	function modkit_player_proto:canResearch(item)
 		local name = modkit.research:resolveName(item); -- item or item.name if table
+		print("can " .. self.id  .. " res " .. name);
 		return Player_CanResearch(self.id, name);
 	end
 
@@ -103,7 +108,9 @@ if (modkit_player_proto == nil) then
 
 	function modkit_player_proto:grantResearchOption(item)
 		local name = modkit.research:resolveName(item);
-		return Player_GrantResearchOption(self.id, name);
+		if (self:canResearch(item) == 1) then
+			return Player_GrantResearchOption(self.id, name);
+		end
 	end
 
 	function modkit_player_proto:hasQueuedResearch(item)
@@ -137,7 +144,7 @@ if (modkit_player_proto == nil) then
 			if (restrict == 1) then
 				return Player_RestrictResearchOption(self.id, name);
 			else
-				return Player_UnRestrictResearchOption(self.id, name);
+				return Player_UnrestrictResearchOption(self.id, name);
 			end
 		end
 	end

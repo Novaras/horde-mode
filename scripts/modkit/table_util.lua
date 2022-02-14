@@ -176,6 +176,14 @@ if (modkit.table == nil) then
 			return modkit.table.filter(tbl_a, function (a_val)
 				return modkit.table.find(%tbl_b, a_val) == nil; -- elements in A, but not B
 			end);
+		end,
+
+		slice = function (tbl, i, j)
+			local out = {};
+			for index = i, j do
+				out[index] = tbl[index];
+			end
+			return out;
 		end
 	};
 

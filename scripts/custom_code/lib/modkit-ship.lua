@@ -182,16 +182,35 @@ function modkit_ship:hasSubsystem(subs_name)
 	return SobGroup_HasSubsystem(self.own_group, subs_name);
 end
 
---- Returns the distance between this ship and the given other ship, or the average position if given multiple others.
+--- Returns the distance between this ship and `other`, which can be:
+--- - one other `Ship`
+--- - a `Ship[]`
+--- - a `Position`
 ---
----@param other Ship | Ship[]
+---@param other Ship | Ship[] | Position
 ---@return number
 function modkit_ship:distanceTo(other)
 	if (type(other.own_group) == "string") then -- assume ship
 		return SobGroup_GetDistanceToSobGroup(self.own_group, other.own_group);
-	else -- ship group
+	else
 		local a = self:position();
-		local b = SobGroup_GetPosition(SobGroup_FromShips(SobGroup_Fresh("__"), other));
+		local b = other;
+		local first;
+		for _, val in b do
+			first = val;
+			break;
+		end
+		print("f: " .. (tostring(first) or "nil"));
+		if (type(first) == "table") then
+			-- print("ok do the avg pos");
+			b = modkit.ships():avgPosition(other);
+		end
+		modkit.table.printTbl(a);
+		print("--");
+		modkit.table.printTbl(b);
+		if (b[1] == nil) then
+			return 0;
+		end
 		return sqrt(
 			(b[1] - a[1]) ^ 2 +
 			(b[2] - a[2]) ^ 2 +
@@ -231,13 +250,45 @@ function modkit_ship:attack(targets)
 	elseif (targets.own_group) then
 		return SobGroup_Attack(self.player.id, self.own_group, targets.own_group);
 	else
-		local temp_group = SobGroup_FromShips(self.own_group .. "-temp-attack-group", targets);
+		local temp_group = SobGroup_FromShips(targets, self.own_group .. "-temp-attack-group");
 		SobGroup_Attack(self.player.id, self.own_group, temp_group);
 	end
 end
 
 function modkit_ship:attackPlayer(player)
 	return SobGroup_AttackPlayer(self.own_group, player.id);
+end
+
+--- Causes this ship to kamikazi into `targets`, which can be one or more ships.
+---
+---@param targets Ship | Ship[]
+function modkit_ship:kamikazi(targets)
+	if (targets.own_group) then -- need to turn into `Ship[]`
+		targets = {
+			[1] = targets
+		}
+	end
+	SobGroup_Kamikaze(self.own_group, SobGroup_FromShips(targets));
+end
+
+--- Returns the cloak state of this ship, optionally setting it.
+---
+---@param set '0'|'1'
+---@return '0'|'1'
+function modkit_ship:cloak(set)
+	local current_status = self:isCloaked();
+	set = set or mod(current_status + 1, 2);
+
+	if (set ~= current_status) then
+		SobGroup_CloakToggle(self.own_group);
+	end
+	return self:isCloaked();
+end
+
+--- Returns whether or not this ship is cloaked
+---@return '0'|'1'
+function modkit_ship:isCloaked()
+	return SobGroup_IsCloaked(self.own_group);
 end
 
 --- Causes this ship to begin capturing `targets`, which can be a single ship or a table of ships.
@@ -247,7 +298,7 @@ function modkit_ship:capture(targets)
 	if (targets.own_group) then
 		SobGroup_CaptureSobGroup(self.own_group, targets.own_group);
 	else
-		local temp_group = SobGroup_FromShips(self.own_group .. "-temp-capture-group", targets);
+		local temp_group = SobGroup_FromShips(targets, self.own_group .. "-temp-capture-group");
 		SobGroup_CaptureSobGroup(self.own_group, temp_group);
 	end
 end
@@ -259,7 +310,7 @@ function modkit_ship:salvage(targets)
 	if (targets.own_group) then
 		SobGroup_SalvageSobGroup(self.own_group, targets.own_group);
 	else
-		local temp_group = SobGroup_FromShips(self.own_group .. "-temp-salvage-group", targets);
+		local temp_group = SobGroup_FromShips(targets, self.own_group .. "-temp-salvage-group");
 		SobGroup_SalvageSobGroup(self.own_group, temp_group);
 	end
 end
@@ -270,10 +321,19 @@ function modkit_ship:stop()
 	SobGroup_Stop(self.player.id, self.own_group);
 end
 
+--- Moves this ship to `where`, which may be:
+--- - `string`: a volume name
+--- - `Ship`: a `Ship`
+--- - `Position`: a `Position`
+---
+---@param where string | Ship | Position
 function modkit_ship:move(where)
 	if (type(where) == "string") then -- a volume
 		SobGroup_Move(self.player.id, self.own_group, where);
 	else -- a position
+		if (where.own_group) then
+			where = where:position();
+		end
 		Volume_AddSphere(self._default_vol, where, 1);
 		SobGroup_MoveToPoint(self.player.id, self.own_group, where);
 		Volume_Delete(self._default_vol);
@@ -287,7 +347,7 @@ function modkit_ship:guard(target)
 	if (target.own_group) then
 		self._guard_group = target.own_group;
 	else -- collection of ships
-		self._guard_group = SobGroup_FromShips(self.own_group .. "_guard_group", target);
+		self._guard_group = SobGroup_FromShips(target, self.own_group .. "_guard_group");
 	end
 	return SobGroup_GuardSobGroup(self.own_group, self._guard_group);
 end
@@ -319,7 +379,7 @@ end
 ---
 ---@param to Position
 function modkit_ship:hyperspace(to)
-	SobGroup_HyperspaceTo(self.own_group, to);
+	SobGroup_HyperspaceTo(self.own_group, Volume_Fresh("-", to));
 end
 
 --- Gets or optionally sets the ship's auto-launch behavior. `1` for auto-launch, `0` for stay-docked manual launching.
@@ -756,7 +816,8 @@ end
 ---
 ---@return bool
 function modkit_ship:isBeingCaptured()
-	local temp = SobGroup_GetSobGroupBeingCapturedGroup(self.own_group, DEFAULT_SOBGROUP);
+	local temp = SobGroup_Fresh();
+	SobGroup_GetSobGroupBeingCapturedGroup(self.own_group, temp);
 	return SobGroup_Count(temp) > 0;
 end
 

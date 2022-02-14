@@ -1,40 +1,7 @@
-tbl_util = {};
-
-function tbl_util:merge(tbl_a, tbl_b, merger)
-	if (self.merge == nil) then
-		print("\n[modkit] Error: table:merge must be called as a method (table:merge vs table.merge)");
-	end
-	merger = merger or function (a, b)
-		if (type(a) == "table" and type(b) == "table") then
-			return %self:merge(a, b);
-		else
-			return (b or a);
-		end
-	end
-	if (tbl_a == nil and tbl_b ~= nil) then
-		return tbl_b;
-	elseif (tbl_a ~= nil and tbl_b == nil) then
-		return tbl_a;
-	elseif (tbl_b == nil and tbl_b == nil) then
-		return {};
-	end
-	local out = {};
-	-- basic copy
-	for k, v in tbl_a do
-		out[k] = v;
-	end
-	for k, v in tbl_b do
-		if (out[k] == nil) then
-			out[k] = v;
-		else
-			out[k] = merger(out[k], v);
-		end
-	end
-	return out;
+if (modkit == nil) then
+	dofilepath("data:scripts/modkit/table_util.lua");
 end
-
-
-function makeStateHandle(screen_name, dropdown_host_el)
+makeStateHandle = makeStateHandle or function (screen_name, dropdown_host_el)
 	screen_name = screen_name or "DefaultStateScreen";
 	dropdown_host_el = dropdown_host_el or "host_dropdown";
 
@@ -45,6 +12,9 @@ function makeStateHandle(screen_name, dropdown_host_el)
 
 	return function(new_state, overwrite)
 		UI_SelectDropDownListboxItemIndex(%screen_name, %dropdown_host_el, 0);
+		-- print("CURRENT UI_STR STATE:");
+		-- print(UI_GetDropdownListBoxSelectedCustomDataString(%screen_name, %dropdown_host_el) or "{}");
+
 		local current_state = dostring("return " .. (UI_GetDropdownListBoxSelectedCustomDataString(%screen_name, %dropdown_host_el) or "{}"));
 
 		if (new_state) then
@@ -53,14 +23,18 @@ function makeStateHandle(screen_name, dropdown_host_el)
 			if (overwrite) then
 				current_state = new_state;
 			else
-				current_state = tbl_util:merge(current_state, new_state);
+				current_state = modkit.table:merge(current_state, new_state);
 			end
 
 			local asStr = function (v, tblParser)
 				if (type(v) == "table") then
 					local out = "{";
 					for k, v in v do
-						out = out .. k .. "=" .. tblParser(v, tblParser) .. ",";
+						local i = tostring(k);
+						if (type(k) == "number") then
+							i = "[" .. k .. "]";
+						end
+						out = out .. i .. "=" .. tblParser(v, tblParser) .. ",";
 					end
 					out = out .. "}";
 					return out;

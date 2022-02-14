@@ -49,6 +49,20 @@ if (H_DRIVER == nil) then
 		return enemy_ships;
 	end
 
+	--- Returns all ships of the given type.
+	---
+	---@param ship_type string
+	---@return Ship[]
+	function GLOBAL_SHIPS:findType(ship_type)
+		local ships_of_type = {};
+		for _, ship in self:all() do
+			if (ship.type_group == ship_type) then
+				modkit.table.push(ships_of_type, ship);
+			end
+		end
+		return ships_of_type;
+	end
+
 	--- Registers the incoming sobgroup, player index, and ship id into a Ship table within the global registry.
 	-- The Ship is a rich representation of the actual ingame ship as a proper workable table.
 	function register(type_group, player_index, ship_id)
@@ -91,7 +105,7 @@ if (H_DRIVER == nil) then
 
 	GLOBAL_SHIPS.cache = GLOBAL_SHIPS.cache or {};
 	GLOBAL_SHIPS.cache.newly_created = GLOBAL_SHIPS.cache.newly_created or {};
-	
+
 	function create(g, p, i)
 		local caller = register(g, p, i);
 
