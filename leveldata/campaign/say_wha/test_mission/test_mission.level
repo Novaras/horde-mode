@@ -62,7 +62,7 @@ local math = modkit.math;
 local carrier_pos = { 0, 1000, 0 };
 MODKIT_MISSION_SHIPS = {
   player_initbuilder = {
-    type = "horde_shipyard",
+    type = "hgn_horde_shipyard",
     player = 0,
     position = carrier_pos,
     rotation = { 0, random(0, 100), 0 },
@@ -74,6 +74,11 @@ MODKIT_MISSION_SHIPS = {
     position = { 10000, 10000, 10000 },
     in_hyperspace = 1,
     group_name_override = "state_tracker"
+  },
+  eyes = {
+    type = "kus_sensorarray",
+    player = 0,
+    position = { 0, 0, 0 }
   }
 };
 

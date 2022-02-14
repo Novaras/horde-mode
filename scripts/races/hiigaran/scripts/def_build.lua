@@ -616,6 +616,15 @@ build =
 		DisplayedName =			"$7058",
 		Description =			"$7059"
 	},
+	{ 
+		Type =					Ship, 
+		ThingToBuild =			"Hgn_Horde_Shipyard",
+		RequiredResearch =		"",
+		RequiredShipSubSystems =	"",
+		DisplayPriority =		118,
+		DisplayedName =			"aaaaa",
+		Description =			"bbbbb"
+	},
 }
 
 doscanpath("data:Scripts/Productiontimes", "applybuildtimes.lua")

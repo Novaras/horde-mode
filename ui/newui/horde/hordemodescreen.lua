@@ -1,6 +1,8 @@
 dofilepath("data:ui/newui/Styles/HWRM_Style/HWRMDefines.lua")
 dofilepath("data:ui/newui/Styles/HWRM_Style/ControlConstructors.lua")
 
+UI_LoadUILibrary("data:ui/newui/horde/hordemodescreencode.lua");
+
 if (modkit == nil) then dofilepath("data:scripts/modkit/table_util.lua"); end
 
 if (PHASE_REWARDS == nil) then dofilepath("data:scripts/custom_code/horde/phase_rewards.lua"); end
@@ -78,6 +80,9 @@ HordeModeScreen = {
 	RootElementSettings = {
 		backgroundColor = COLOR_FULLSCREEN_DARKEN,
 	},
+
+	onShow = "HordeModeScreenOnShow()",
+	onHide = "HordeModeScreenOnHide()"
 	;
 	{
 		type = "Frame",
@@ -257,7 +262,7 @@ HordeModeScreen = {
 				},
 			},
 			-- NewMenuButton("m_btnAccept_A", "Accept Option A", "Option A", 0, BTN_LAYOUT, "FEButtonStyle1_Outlined"),
-			makeButton({ name = "btn_a", text = "Accept Option A", onClick = "dofilepath('data:scripts/modkit/scope_state.lua'); s = makeStateHandle(); s({ selected = s().rewards.a }); UI_HideScreen('HordeModeScreen');", custom_num = 0 }),
+			makeButton({ name = "btn_a", text = "Accept Option A", onClick = "HordeRewardBtnClick('a')", custom_num = 0 }),
 			{ -- seperator
 				type = "Frame",
 				Layout = {
@@ -265,7 +270,7 @@ HordeModeScreen = {
 				},
 			},
 			-- NewMenuButton("m_btnAccept_B", "Accept Option B", "Option B", 0, BTN_FOOTER_STD_LAYOUT, "FEButtonStyle1_Alert_Outlined_Chipped"),
-			makeButton({ name = "btn_b", text = "Accept Option B", onClick = "dofilepath('data:scripts/modkit/scope_state.lua'); s = makeStateHandle(); s({ selected = s().rewards.b }); UI_HideScreen('HordeModeScreen');", custom_num = 0 }),
+			makeButton({ name = "btn_b", text = "Accept Option B", onClick = "HordeRewardBtnClick('b')", custom_num = 0 }),
 			{ -- right margin (Layout margins are really weird)
 				type = "Frame",
 				Layout = {

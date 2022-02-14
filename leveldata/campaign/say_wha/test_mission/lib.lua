@@ -5,12 +5,21 @@ REWARD_DIALOG_TRACKER_ROE_VALUES = {
 	option_b = DefensiveROE
 };
 
----@class Wave
+---@class WaveConfig
 ---@field value integer
----@field enemy_types string[]
+---@field enemy_types table<integer, string | { type: string, min_count: integer }>
+---@field duration integer
+
+---@class Wave
+---@field init bool
+---@field finished bool
+---@field config WaveConfig
+---@field index integer
+---@field spawnedShips fun(): Ship[]
+---@field started_gametime number
 
 ---@class Phase
----@field waves Wave[]
+---@field waves WaveConfig[]
 
 phase_rules = {};
 wave_rules = {};
@@ -18,64 +27,28 @@ wave_rules = {};
 --- Returns a function which is used as the rule for the wave given by `index`.
 ---
 ---@param wave_index integer
----@param wave Wave
+---@param wave WaveConfig
 ---@return RuleFn
 function makeWaveRule(wave_index, wave)
 	---@type RuleFn
 	return function (state)
-		if (state.total_spawned_group == nil) then
-			Subtitle_Message("hello from wave " .. %wave_index, 2);
-			print("wave " .. %wave_index .. " start...");
-
-			state.total_spawned_group = SobGroup_Fresh("_wave_total_spawned_" .. %wave_index);
-
-			local player_carrier = GLOBAL_MISSION_SHIPS:get("player_initbuilder");
-
-			local ships_to_spawn = {};
-			local current_value = 0;
-			while(current_value < %wave.value) do
-				print("\tcurrent val: " .. current_value);
-				local ship_type = %wave.enemy_types[random(1, modkit.table.length(%wave.enemy_types))];
-				local ship_value = SobGroup_GetStaticF(ship_type, "buildCost");
-				print("\tsv: " .. ship_value);
-				if (current_value + ship_value < %wave.value * 1.1) then
-					modkit.table.push(ships_to_spawn, ship_type);
-					current_value = current_value + ship_value;
-				else
-					break;
-				end
-			end
-
-			-- todo: config should be able to define its own definite volumes, random should be a fallback
-			local spawner_volumes = {};
-			local vol_count = max(1, floor(modkit.table.length(ships_to_spawn) / 2));
-			for i = 1, vol_count do
-				local vol_pos = {};
-				for axis, val in player_carrier:position() do
-					if (axis ~= 1) then -- dont offset vertically
-						-- val + ((1 or -1) * [7000, 9000])
-						vol_pos[axis] = val + (modkit.math.pow(-1, random(1, 2)) * random(7000, 9000));
-					end
-				end
-				spawner_volumes[i] = Volume_Fresh("_horde_spawn_vol_" .. i, vol_pos);
-			end
-
-			for _, ship_type in ships_to_spawn do
-				local group = SobGroup_Fresh("_horde_spawn_group");
-				local vol = modkit.table.randomEntry(spawner_volumes)[2];
-
-				SobGroup_SpawnNewShipInSobGroup(1, ship_type, "_horde_squad", group, vol);
-				SobGroup_SobGroupAdd(state.total_spawned_group, group);
-			end
-		end
-
-		if (state.total_spawned_group) then
-			print("spawned group count: " .. SobGroup_CountByPlayer(state.total_spawned_group, 1));
-
-			if (
-				Universe_GameTime() > state._started_gametime + (60 * 3) or
-				SobGroup_CountByPlayer(state.total_spawned_group, 1) == 0
-			) then
+		local state = makeStateHandle();
+		---@type Wave
+		local running_wave = state().running_wave;
+		if (running_wave == -1) then
+			state({
+				running_wave = {
+					index = %wave_index,
+					config = %wave,
+					started_gametime = Universe_GameTime()
+				}
+			});
+			Subtitle_Message("hello from wave " .. %wave_index, 3);
+		else
+			if (running_wave.finished) then
+				state({
+					running_wave = -1
+				});
 				return 1;
 			end
 		end
@@ -186,6 +159,9 @@ function makeWaveManagerRule()
 
 		if (state.running == nil) then
 			print("no wave running!");
+			makeStateHandle()({
+				running_wave = -1
+			});
 			state:waveBegin(rules, 1);
 		end
 	end
@@ -231,16 +207,6 @@ function makePhaseManagerRule()
 					self.running_index = index;
 					self.running_pattern = "phase_" .. index;
 					self.next_phase_index = index + 1;
-
-					-- modkit.table.printTbl({ index, 0, 0 }, "TRACKER POS SET TO");
-					-- local vol = Volume_Fresh("tracker_hs_vol", { index, 0, 0 });
-					-- SobGroup_ExitHyperSpace("state_tracker", vol);
-
-					-- print("proof:");
-					-- modkit.table.printTbl(SobGroup_GetPosition("state_tracker"));
-					print("phase " .. index .. " begun, set the tracker HP to " .. 1 / index);
-					SobGroup_SetHealth("state_tracker", 1);
-					SobGroup_SetHealth("state_tracker", 1 / index);
 
 					rules:begin(phase_rule);
 					rules:on(
@@ -292,6 +258,13 @@ function makePhaseManagerRule()
 			if (UI_IsScreenActive("HordeModeScreen") == 0 and makeStateHandle()().awaiting_ui == 0) then -- above but no active screen = UI result available
 				print("UI result available!");
 				Universe_Pause(0, 0);
+				-- local rules = modkit.campaign.rules;
+				-- local grace_period_rule = rules:make("phase_grace_period", makeGracePeriodRule(30));
+				-- rules:begin(grace_period_rule);
+				-- rules:on(grace_period_rule.id, function ()
+				-- 	%state:phaseBegin(%rules);
+				-- end);
+
 				state:phaseBegin(rules);
 			else
 				print("awaiting UI result");
@@ -307,4 +280,16 @@ function makePhaseManagerRule()
 			state:phaseBegin(rules);
 		end
 	end
+end
+
+function makeGracePeriodRule(period)
+	return function (state)
+		if (state._tick == 50) then
+			Subtitle_Message("<c=33ffff>WELCOME TO HORDE MODE!</c>", 5);
+		end
+
+		if (Universe_GameTime() >= %period) then
+			return 1;
+		end
+	end;
 end
