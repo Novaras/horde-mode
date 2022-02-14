@@ -172,3 +172,5 @@ setEngineBurn(NewShipType,9,0.2,0.5,300,1.02,0.1,0.25,380);
 setEngineGlow(NewShipType,1,1,1.01,15,325,50,1.75,{1,.47,.0, 0.2});
 loadShipPatchList(NewShipType,"data:sound/sfx/ship/misc/",0,"Engines/KeeperDestroyerEng","",1,"Ambience/KeeperDestroyerAmb","");
 NewShipType.canSurround=1
+
+addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "kpr_destroyer", 1);
