@@ -43,7 +43,7 @@ local drones_proto = {
 --- === helpers ===
 
 function drones_proto:killDrones()
-	self:print("kill!");
+	-- self:print("kill!");
 	for i, drone in self.live_drones do
 		drone:HP(0);
 		self.live_drones[i] = nil;
@@ -53,7 +53,7 @@ end
 function drones_proto:pruneDeadDrones()
 	for i, drone in self.live_drones do
 		if (drone:alive() == nil) then
-			self:print("prune drone " .. drone.own_group);
+			-- self:print("prune drone " .. drone.own_group);
 			self.live_drones[i] = nil;
 		end
 	end
@@ -110,7 +110,7 @@ function drones_proto:produceMissingDrones()
 		-- print("[" .. Universe_GameTime() .. "] frigate " .. self.own_group .. " has no drones! (tick: " .. self:tick() .. ")");
 		for i = 0, modkit.table.length(self.parade_positions) - 1 do
 			if (self.live_drones[tostring(i)] == nil) then
-				self:print("im missing drone " .. tostring(i));
+				-- self:print("im missing drone " .. tostring(i));
 				self:produceShip("kus_drone" .. i);
 				self.new_drones[modkit.table.length(self.new_drones) + 1] = tostring(i);
 			end
@@ -210,7 +210,7 @@ end
 
 function drones_proto:update()
 	if (self:tick() > 1 and self:autoLaunch() == 0) then
-		self:print("autolaunching");
+		-- self:print("autolaunching");
 		self:autoLaunch(ShipHoldStayDockedAlways);
 	end
 	if (self:tick() >= 3) then -- some time to undock
@@ -230,7 +230,7 @@ function drones_proto:update()
 				self:produceMissingDrones();
 			end
 		else
-			self:print("kill run");
+			-- self:print("kill run");
 			self:killDrones();
 		end
 	end
@@ -275,7 +275,7 @@ drone_proto = {
 ---@param frigate drones_proto
 function drone_proto:link(frigate)
 	if (frigate) then
-		self:print("link with " .. frigate.own_group);
+		-- self:print("link with " .. frigate.own_group);
 	end
 	self.frigate = frigate;
 end
