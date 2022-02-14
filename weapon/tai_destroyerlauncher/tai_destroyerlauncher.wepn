@@ -16,7 +16,6 @@ setPenetration(NewWeaponType,15,0.5,
 {SwarmerArmor=0.10},
 {SpaceMineArmor=1});
 setAccuracy(NewWeaponType,1,
-{Swarmer=0.01},
 {SpaceMine=0.01},
 {Torpedo=0},
 {HeavyMissile=0},
