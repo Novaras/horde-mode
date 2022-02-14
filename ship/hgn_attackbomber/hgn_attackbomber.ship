@@ -135,6 +135,9 @@ NewShipType.militaryUnit=1
 NewShipType.alternativeHyperspaceTime = 7
 addAbility(NewShipType,"MoveCommand",1,0);
 addAbility(NewShipType,"CanDock",1,1);
+
+addAbility(NewShipType,"CloakAbility",0,3,25,2222,0,0,222,222);
+
 NewShipType.dockTimeBetweenTwoFormations=0.5
 NewShipType.dockTimeBeforeStart=0.5
 NewShipType.dockNrOfShipsInDockFormation=1

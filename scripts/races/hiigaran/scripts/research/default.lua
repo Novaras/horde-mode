@@ -119,10 +119,10 @@ base_research = {
 	-- horde stuff
 	{
 		Name = "HordeShipYardBuffs_MaxHealth",
-		RequiredResearch = "",
+		RequiredResearch = "NOGRANT",
 		RequiredSubSystems = "",
-		Cost = 1,
-		Time = 1,
+		Cost = 0,
+		Time = 0,
 		DisplayedName = "Horde: Shipyard Buffs Reward MaxHealth",
 		ShortDisplayedName = "Horde: SY MaxHealth",
 		DisplayPriority = 1000,
@@ -131,22 +131,21 @@ base_research = {
 		UpgradeName = "MaxHealth",
 		UpgradeValue = 1.5,
 		TargetName = "horde_shipyard",
-		Icon = Icon_Tech,
-		DoNotGrant = 1,
+		Icon = Icon_Tech
 	},
 	{
 		Name = "HordeShipYardBuffs_ProdSpeed",
-		RequiredResearch = "",
+		RequiredResearch = "NOGRANT",
 		RequiredSubSystems = "",
-		Cost = 1,
-		Time = 1,
+		Cost = 0,
+		Time = 0,
 		DisplayedName = "Horde: Shipyard Buffs Reward ProdSpeed",
 		ShortDisplayedName = "Horde: SY ProdSpeed",
 		DisplayPriority = 1001,
 		Description = "Horde: Shipyard Buffs Reward ProdSpeed",
 		UpgradeType = Modifier,
 		UpgradeName = "BuildSpeed",
-		UpgradeValue = 1.3,
+		UpgradeValue = 1.5,
 		TargetType = Ship,
 		TargetName = "horde_shipyard",
 		Icon = Icon_Tech
@@ -169,10 +168,10 @@ base_research = {
 	},
 	{
 		Name = "Corvette_FlakWeapons",
-		RequiredResearch = "",
+		RequiredResearch = "NOGRANT",
 		RequiredSubSystems = "",
-		Cost = 1,
-		Time = 1,
+		Cost = 0,
+		Time = 0,
 		DisplayedName = "Horde: Corvette Strike Flak Weapons",
 		ShortDisplayedName = "Horde: Vette Strike Flak",
 		DisplayPriority = 1003,
@@ -181,8 +180,38 @@ base_research = {
 		UpgradeName = "UseSpecialWeaponsInNormalAttack",
 		TargetType = Ship,
 		TargetName = "hgn_assaultcorvette",
-		Icon = Icon_Ability,
-		DoNotGrant = 1
+		Icon = Icon_Ability
+	},
+	{ -- this one we just check if done, so we can do a callback (`custom_code/../horde/..`)
+		Name = "Bomber_Cloaking",
+		RequiredResearch = "NOGRANT",
+		RequiredSubSystems = "",
+		Cost = 0,
+		Time = 0,
+		DisplayedName = "Horde: Bomber Cloaks",
+		ShortDisplayedName = "Horde: Bomber Cloaks",
+		DisplayPriority = 1004,
+		Description = "Horde: Bomber Cloaks",
+		UpgradeName = "CloakAbility",
+		UpgradeType = Ability,
+		TargetType = Ship,
+		TargetName = "hgn_attackbomber",
+		Icon = Icon_Ability
+	},
+	{
+		Name = "Pulsar_EMP",
+		RequiredResearch = "NOGRANT",
+		RequiredSubSystems = "",
+		Cost = 0,
+		Time = 1,
+		DisplayedName = "",
+		DisplayPriority = 1005,
+		Description = "",
+		UpgradeType = Ability,
+		UpgradeName = "UseSpecialWeaponsInNormalAttack",
+		TargetType = Ship,
+		TargetName = "hgn_pulsarcorvette",
+		Icon = Icon_Ability
 	}
 }
 

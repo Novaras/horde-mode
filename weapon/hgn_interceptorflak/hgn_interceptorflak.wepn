@@ -1,12 +1,11 @@
-StartWeaponConfig(NewWeaponType,"Gimble","Missile","horde_tinymissile","Special Attack", 0, 2200, 0,0,0,0,1,1,1, 12, 0,0,1,0,120,120,0.1,"Normal",1,0,0);
+StartWeaponConfig(NewWeaponType,"Gimble","Missile","horde_tinymissile","Special Attack", 0, 2200, 0,0,0,0,1,1,1, 15, 0,0,1,0,120,120,0.1,"Normal",1,0,0);
 AddWeaponResult(NewWeaponType,"Hit","SpawnWeaponFire","Target",0,0,"horde_flakburst");
 AddWeaponResult(NewWeaponType,"Miss","SpawnWeaponFire","Target",0,0,"horde_flakburst");
-setPenetration(NewWeaponType,5,1,
+setPenetration(NewWeaponType,80,1,
 {PlanetKillerArmour=0},
 {SwarmerArmor=0.10},
 {SpaceMineArmor=1});
 setAccuracy(NewWeaponType,1,
-{Swarmer=0.2},
 {SpaceMine=0.7},
 {Torpedo=0},
 {HeavyMissile=0},

@@ -1,6 +1,7 @@
-StartWeaponConfig(NewWeaponType,"AnimatedTurret","InstantHit","Laser","Normal Only",0,1750,0,0.4,0,0,1,1,1,1,2,4,1,0,120,120,0.1,"Normal",1,0,300);
-AddWeaponResult(NewWeaponType,"Hit","DamageHealth","Target",160,160,"");
-setPenetration(NewWeaponType,20,1,
+StartWeaponConfig(NewWeaponType,"AnimatedTurret","InstantHit","Laser","Special Attack",0,1800,0,0.4,0,0,1,1,1,1,2,4,1,0,120,120,0.1,"Normal",1,0,300);
+AddWeaponResult(NewWeaponType,"Hit","DamageHealth","Target",160 * 1.2,160 * 1.2,"");
+AddWeaponResult(NewWeaponType,"Hit","Disable","Target",1,4,"");
+setPenetration(NewWeaponType,80,1,
 {Unarmoured=0.20},
 {Unarmoured_hw1=0.20},
 {LightArmour=0.63},
@@ -20,20 +21,16 @@ setPenetration(NewWeaponType,20,1,
 {MineArmour=1.0},
 {TurretArmour=1.3});
 setAccuracy(NewWeaponType,1,
-{Swarmer=0.1},
 {SpaceMine=0.3},
 {Torpedo=0},
 {HeavyMissile=0},
 {SmallMissile=0},
 {Fighter=0.2},
 {Fighter_hw1=0.2},
-{Corvette=0.38},
-{Corvette_hw1=0.388},
+{Corvette=0.5},
+{Corvette_hw1=0.5},
 {munition=0.20},
-{Frigate=0.95},
-{SmallCapitalShip=0.60},
-{BigCapitalShip=0.60},
-{ResourceLarge=0.50});
+{Frigate=0.95});
 setAngles(NewWeaponType,0,-180,180,-5,60);
 setMiscValues(NewWeaponType,4,0);
 addAnimTurretSound(NewWeaponType,"Data:Sound/SFX/ETG/SPECIAL/SPECIAL_ABILITIES_TURRET_ON");
