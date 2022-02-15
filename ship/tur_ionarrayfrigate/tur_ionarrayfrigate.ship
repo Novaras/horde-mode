@@ -166,3 +166,5 @@ NewShipType.explosiveDamageOnDeath=195
 NewShipType.radiusDamageEvadeMod=1.1
 NewShipType.strikeGroupSpeed=5000
 NewShipType.canSurround=1
+
+addCustomCode(NewShipType, "data:scripts/driver.lua", "load", "create", "update", "destroy", "tur_ionarrayfrigate", 1);
