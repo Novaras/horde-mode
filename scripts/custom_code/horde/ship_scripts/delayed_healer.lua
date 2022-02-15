@@ -8,7 +8,7 @@ delayed_healer_proto = {
 	previous_hp = 1,
 	damage_data = nil,
 	healing_data = nil,
-	debounce_period = 10,
+	debounce_period = 12,
 	heal_proportion = 0.5,
 	heal_steps = 8,
 	activation_threshold = 0.1
@@ -110,3 +110,4 @@ function delayed_healer_proto:update()
 end
 
 modkit.compose:addShipProto("hgn_destroyer", delayed_healer_proto);
+modkit.compose:addShipProto("hgn_battlecruiser", delayed_healer_proto);
