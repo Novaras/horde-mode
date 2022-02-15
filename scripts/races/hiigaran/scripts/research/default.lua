@@ -184,34 +184,19 @@ base_research = {
 	},
 	{ -- this one we just check if done, so we can do a callback (`custom_code/../horde/..`)
 		Name = "Bomber_Cloaking",
-		RequiredResearch = "NOGRANT",
-		RequiredSubSystems = "",
-		Cost = 0,
-		Time = 0,
-		DisplayedName = "Horde: Bomber Cloaks",
-		ShortDisplayedName = "Horde: Bomber Cloaks",
-		DisplayPriority = 1004,
-		Description = "Horde: Bomber Cloaks",
-		UpgradeName = "CloakAbility",
-		UpgradeType = Ability,
-		TargetType = Ship,
-		TargetName = "hgn_attackbomber",
-		Icon = Icon_Ability
+		RequiredResearch = "NOGRANT"
 	},
 	{
 		Name = "Pulsar_EMP",
 		RequiredResearch = "NOGRANT",
-		RequiredSubSystems = "",
-		Cost = 0,
-		Time = 1,
-		DisplayedName = "",
-		DisplayPriority = 1005,
-		Description = "",
 		UpgradeType = Ability,
 		UpgradeName = "UseSpecialWeaponsInNormalAttack",
 		TargetType = Ship,
-		TargetName = "hgn_pulsarcorvette",
-		Icon = Icon_Ability
+		TargetName = "hgn_pulsarcorvette"
+	},
+	{
+		Name = "Delayed_Healing",
+		RequiredResearch = "NOGRANT"
 	}
 }
 
