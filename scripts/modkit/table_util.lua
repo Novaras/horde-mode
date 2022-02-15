@@ -205,10 +205,41 @@ if (modkit.table == nil) then
 		return tbl[%table.firstKey(tbl)];
 	end
 
-	function table.clone(tbl)
+	--- _Clones_ a table, meaning the table is copied by value (a new table is created),
+	--- unlike normal copy of a table variable, which merely copies the _reference_ to that table.
+	---
+	--- Custom behavior can be given for specified keys; they can be either omitted or overridden.
+	--- If a key is merked both omitted and overridden, it will be omitted.
+	---
+	--- Returns a new table which is otherwise a clone of the original.
+	---
+	---@param tbl table
+	---@param custom_key_behaviors { omit: string[], override: table }
+	---@param recurse_stop_depth any
+	---@return table
+	function table.clone(tbl, custom_key_behaviors, recurse_stop_depth)
+		recurse_stop_depth = recurse_stop_depth or -1;
+		custom_key_behaviors = custom_key_behaviors or {};
+		local omit = custom_key_behaviors.omit or {};
+		local override = custom_key_behaviors.override or {};
+
+		print("begin");
+		modkit.table.printTbl(custom_key_behaviors);
+
 		local out = {};
 		for k, v in tbl do
-			out[k] = v;
+			print(k .. ": " .. tostring(v));
+			if (modkit.table.includesValue(omit, k) == nil) then -- dont include deletions
+				if (modkit.table.includesKey(override, k)) then -- override if given
+					out[k] = override[k];
+				else
+					if (type(v) == "table" and (recurse_stop_depth == -1 or recurse_stop_depth > 0)) then
+						out[k] = modkit.table.clone(v, {}, max(-1, recurse_stop_depth - 1));
+					else
+						out[k] = v;
+					end
+				end
+			end
 		end
 		return out;
 	end
