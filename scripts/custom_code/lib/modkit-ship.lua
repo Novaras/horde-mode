@@ -706,6 +706,8 @@ end
 --- Returns `1` if this ship is under attack from any source, else `nil`. If `attacker` is provided, check instead if
 --- this ship is under attack by that attacker (instead of anything).
 ---
+--- **NOTE:** 'Under attack' just means some ship has an attack command agaisnt this ship, not necessarily that it's taking damage.
+---
 ---@param attacker Ship
 ---@return bool
 function modkit_ship:underAttack(attacker)

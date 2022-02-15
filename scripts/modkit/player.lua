@@ -92,7 +92,7 @@ if (modkit_player_proto == nil) then
 
 	-- === research stuff ===
 
-	--- Returns whether or not this play is capable of researching `item`.
+	--- Returns whether or not this player is capable of researching `item`.
 	---
 	---@param item string | table
 	---@return '0'|'1'
@@ -102,10 +102,14 @@ if (modkit_player_proto == nil) then
 		return Player_CanResearch(self.id, name);
 	end
 
+	--- Grants all research items to this player.
 	function modkit_player_proto:grantAllResearch()
 		return Player_GrantAllResearch(self.id);
 	end
 
+	--- Grants the named research _option_ to this player (they still need to research it).
+	---
+	---@param item string | table
 	function modkit_player_proto:grantResearchOption(item)
 		local name = modkit.research:resolveName(item);
 		if (self:canResearch(item) == 1) then
@@ -118,9 +122,13 @@ if (modkit_player_proto == nil) then
 		return Player_HasQueuedResearch(self.id, name);
 	end
 
+	--- Returns where or not this player has _researched_ the given item (or it was granted).
+	---
+	---@param item string | table
+	---@return bool
 	function modkit_player_proto:hasResearch(item)
 		local name = modkit.research:resolveName(item);
-		return Player_HasResearch(self.id, name);
+		return Player_HasResearch(self.id, name) == 1;
 	end
 
 	function modkit_player_proto:doResearch(item)
@@ -158,7 +166,7 @@ if (modkit_player_proto == nil) then
 	end
 
 	function modkit_player_proto:hasResearchFor(ship_type)
-		return Player_HasResearchPrequisitesToBuild(self.id, ship_type);
+		return Player_HasResearchPrequisitesToBuild(self.id, ship_type) == 1;
 	end
 
 	-- === end of research stuff ===

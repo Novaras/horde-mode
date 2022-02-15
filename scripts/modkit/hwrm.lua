@@ -273,6 +273,22 @@ if (nil) then
 	function Player_SetRU(player_index, amount)
 	end
 
+	--- Returns whether or not this player can research the named research item.
+	---
+	---@param player_index integer
+	---@param item_name string
+	---@return '0'|'1'
+	function Player_CanResearch(player_index, item_name)
+	end
+
+	--- Returns whether or not this player has researched the named research item.
+	---
+	---@param player_index integer
+	---@param item_name string
+	---@return '0'|'1'
+	function Player_HasResearch(player_index, item_name)
+	end
+
 	--- ==== SOBGROUP STUFF! ====
 
 	--- Activates the ability indicated by `ability_code` (see [the full list](https://github.com/HWRM/KarosGraveyard/wiki/Variable;-Abilities))
