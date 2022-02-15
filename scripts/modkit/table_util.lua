@@ -223,12 +223,8 @@ if (modkit.table == nil) then
 		local omit = custom_key_behaviors.omit or {};
 		local override = custom_key_behaviors.override or {};
 
-		print("begin");
-		modkit.table.printTbl(custom_key_behaviors);
-
 		local out = {};
 		for k, v in tbl do
-			print(k .. ": " .. tostring(v));
 			if (modkit.table.includesValue(omit, k) == nil) then -- dont include deletions
 				if (modkit.table.includesKey(override, k)) then -- override if given
 					out[k] = override[k];
