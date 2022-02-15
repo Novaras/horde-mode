@@ -111,13 +111,15 @@ local cloak_tech_icon_layout = {
 	uvRect = { 0, 128, 128, 256 }
 };
 
+local repair_tech_icon_layout = {
+	texture = "data:ui/newui/taskbar/commandicons/cmd_ico_repair.dds",
+	uvRect = { 0, 128, 128, 256 }
+}
+
 ---@class SpawnInfo
 ---@field type string
 ---@field player integer
 ---@field count integer
-
----@type SpawnInfo
-local a;
 
 ---@class _Rew
 ---@field name string
@@ -135,6 +137,7 @@ local a;
 -- <c=ffd500> for production
 -- <c=ff2222> for atk/cmd
 -- <c=22ffff> tech
+-- <c=eeeeee> for cloak
 
 ---@type _Rew[]
 _p = {
@@ -237,6 +240,14 @@ _p = {
 		icon = cloak_tech_icon_layout,
 		research_grant = {
 			"pulsar_emp"
+		}
+	},
+	{
+		name = "delayed_healing",
+		description = "Destroyers & Battleruisers <c=ff005e>heal for 50% of recent damage</c> if their health isn't reduced again <b>within 12s</b>",
+		icon = repair_tech_icon_layout,
+		research_grant = {
+			"delayed_healing"
 		}
 	}
 };

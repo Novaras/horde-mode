@@ -5,30 +5,28 @@ PHASE_CONFIGS = {
 			[1] = {
 				value = 2000,
 				enemy_types = {
-					"kus_assaultfrigate",
-					-- "tai_heavycorvette",
-					-- "kus_attackbomber",
-					-- "vgr_commandcorvette",
+					"tai_multiguncorvette",
+					"tur_ionarrayfrigate"
 				},
 			},
-			-- [2] = {
-			-- 	value = 2200,
-			-- 	enemy_types = {
-			-- 		"kus_lightcorvette",
-			-- 		"hgn_assaultfrigate",
-			-- 		"kus_attackbomber"
-			-- 	},
-			-- },
-			-- [3] = {
-			-- 	value = 2750,
-			-- 	enemy_types = {
-			-- 		"kus_assaultfrigate",
-			-- 		"tai_assaultfrigate",
-			-- 		"hgn_interceptor",
-			-- 		"tai_defensefighter",
-			-- 		"kad_multibeamfrigate"
-			-- 	}
-			-- }
+			[2] = {
+				value = 2200,
+				enemy_types = {
+					"kus_lightcorvette",
+					"hgn_assaultfrigate",
+					"kus_attackbomber"
+				},
+			},
+			[3] = {
+				value = 2750,
+				enemy_types = {
+					"kus_assaultfrigate",
+					"tai_assaultfrigate",
+					"hgn_interceptor",
+					"tai_defensefighter",
+					"kad_multibeamfrigate"
+				}
+			}
 		}
 	},
 	[2] = {
