@@ -80,5 +80,7 @@ SobGroup_CreateSubSystem(GLOBAL_MISSION_SHIPS:get('player_initbuilder').own_grou
 
 -- UI_ShowScreen("HordeModeScreen", ePopup);
 
-Player_GrantResearchOption(0, "Fighter_FlakWeapons");
-Player_GrantResearchOption(0, "Corvette_FlakWeapons");
+-- Player_GrantResearchOption(0, "Fighter_FlakWeapons");
+-- Player_GrantResearchOption(0, "Corvette_FlakWeapons");
+-- Player_GrantResearchOption(0, "Bomber_Cloaking");
+-- Player_GrantResearchOption(0, "Delayed_Healing");

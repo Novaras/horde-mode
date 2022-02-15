@@ -43,9 +43,7 @@ function horde_tracker_proto:manageRewards()
 			print("apply grants");
 			for _, grant in reward.research_grant do
 				print("\tgrant: " .. grant);
-				if (self.human_player:hasResearch(grant) == 0) then
-					print("human:");
-					print(self.human_player.id);
+				if (self.human_player:hasResearch(grant) == nil) then
 					self.human_player:grantResearchOption(grant);
 				end
 			end
@@ -54,6 +52,7 @@ function horde_tracker_proto:manageRewards()
 		if (reward.spawn) then
 			print("spawn ships");
 			for _, spawn_data in reward.spawn do
+				modkit.table.printTbl(spawn_data, "spawn data");
 				for i = 1, spawn_data.count do
 					SobGroup_SpawnNewShipInSobGroup(
 						spawn_data.player,
