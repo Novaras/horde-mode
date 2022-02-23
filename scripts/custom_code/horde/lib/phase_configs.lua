@@ -110,8 +110,7 @@ PHASE_CONFIGS = {
 				enemy_types = {
 					{
 						type = "kad_advancedswarmer",
-						min_count = 30,
-						custom_price = 60
+						min_count = 30
 					},
 					"tai_defensefighter",
 					"kad_multibeamfrigate",
