@@ -1,10 +1,5 @@
 if (modkit == nil) then dofilepath("data:scripts/modkit.lua"); end
 
-REWARD_DIALOG_TRACKER_ROE_VALUES = {
-	option_a = OffensiveROE,
-	option_b = DefensiveROE
-};
-
 ---@class WaveConfig
 ---@field value integer
 ---@field enemy_types table<integer, string | { type: string, min_count: integer }>
@@ -86,18 +81,6 @@ function makePhaseRule(phase_index, phase, wave_manager_rule)
 				end
 			);
 		end
-
-		-- print("from phase rule");
-		-- print("screen active?");
-		-- print(UI_IsScreenActive("HordeModeScreen"));
-		-- print("hmm");
-		-- print(SobGroup_GetHealth("state_tracker"));
-		-- if (SobGroup_GetHealth("state_tracker") == REWARD_DIALOG_VALUES.option_a) then
-		-- 	print("we chose option A!");
-		-- elseif (SobGroup_GetHealth("state_tracker") == REWARD_DIALOG_VALUES.option_b) then
-		-- 	print("we chose option B!");
-		-- end
-		-- print("\n\n");
 
 		if (%wave_manager_rule.status == "returned") then
 			return 1;

@@ -68,12 +68,12 @@ MODKIT_MISSION_SHIPS = {
     rotation = { 0, random(0, 100), 0 },
     in_hyperspace = 0,
   },
-  state_tracker = {
-    type = "horde_tracker",
+  horde_manager = {
+    type = "horde_manager",
     player = -1,
     position = { 10000, 10000, 10000 },
     in_hyperspace = 1,
-    group_name_override = "state_tracker"
+    group_name_override = "horde_manager"
   },
   eyes = {
     type = "kus_sensorarray",
