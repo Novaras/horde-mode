@@ -200,14 +200,9 @@ function modkit_ship:distanceTo(other)
 			first = val;
 			break;
 		end
-		print("f: " .. (tostring(first) or "nil"));
 		if (type(first) == "table") then
-			-- print("ok do the avg pos");
 			b = modkit.ships():avgPosition(other);
 		end
-		modkit.table.printTbl(a);
-		print("--");
-		modkit.table.printTbl(b);
 		if (b[1] == nil) then
 			return 0;
 		end

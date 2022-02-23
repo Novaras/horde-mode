@@ -3,7 +3,7 @@ if (modkit == nil) then
 end
 
 if (modkit.shipGroup == nil) then
-	---@class ShipsLib : GLOBAL_SHIPS
+	---@class ShipCollectionExt : ShipCollection
 	local lib = modkit.table.clone(GLOBAL_SHIPS);
 
 	--- Returns the avg position of `ships` or `GLOBAL_SHIPS`.
@@ -19,11 +19,33 @@ if (modkit.shipGroup == nil) then
 		return SobGroup_GetPosition(group);
 	end
 
+	--- Finds a ship and returns it.
+	---
+	--- The argument may be a `Ship` or a filter predicate. If given a `Ship`, matches by `id`.
+	---
+	---@param predicate_or_ship Ship|ShipFilterPredicate
+	---@return Ship
+	function lib:find(predicate_or_ship)
+		if (predicate_or_ship == nil) then
+			return nil;
+		end
+
+		local predicate = NOOP;
+		if (type(ship) == "table") then
+			predicate = function (other)
+				return other.id == ship.id;
+			end
+		else
+			predicate = predicate_or_ship;
+		end
+		return modkit.table.find(self._entities, predicate);
+	end
+
 	local _ships = function (ships)
-		%lib._entities = ships or GLOBAL_SHIPS._entities;
-		return %lib;
+		ships = ships or GLOBAL_SHIPS._entities;
+		return %lib:shallowCopy(ships);
 	end;
 
-	---@type fun(ships: Ship[]): ShipsLib
+	---@type fun(ships: Ship[]): ShipCollectionExt
 	modkit.ships = _ships;
 end

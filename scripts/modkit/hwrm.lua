@@ -675,10 +675,8 @@ if (nil) then
 	---@param target_selection string
 	---@param source_selection string
 	---@param filter_type string
-	---@param value_1 any
-	---@param value_2 any
 	---@return integer
-	function Selection_FilterInclude(target_selection, source_selection, filter_type, value_1, value_2)
+	function Selection_FilterInclude(target_selection, source_selection, filter_type, ...)
 	end
 
 	--- Fills `target_selection` with all values in `source_selection` which do NOT satisfy `filter_type` for `value_1`, and optionally `value_2`

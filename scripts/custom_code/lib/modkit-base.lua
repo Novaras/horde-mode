@@ -35,6 +35,10 @@ modkit_base = {
 	end
 };
 
+--- Gets and/or sets the tick of this ship (how many `update` calls have been performed since creation).
+---
+---@param set integer
+---@return integer
 function modkit_base:tick(set)
 	if (set and type(set) == "number") then
 		self._tick = set;
@@ -57,6 +61,10 @@ function modkit_base:batchSize()
 	return SobGroup_GetStaticF(self.ship_type, "buildBatch");
 end
 
+--- Calls `modkit.table.printTbl`, providing only key fields.
+---
+---@param ... any
+---@return nil
 function modkit_base:print(...)
 	local out_tbl = {};
 	out_tbl[1] = "[" .. self.own_group .. "]: "

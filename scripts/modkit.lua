@@ -1,13 +1,13 @@
 -- Entry point - bootstraps the other files
--- This is the file you want to load in your scripts with dofilepath, as it will load
--- the package in order, providing the modkit table and a collection of custom sobgroup functions
 
-if (modkit == nil) then -- header guard
+if (H_MODKIT == nil) then
 	print("\n\nmodkit.lua init...");
 
-	modkit = {};
-	
+	modkit = modkit or {};
+
 	doscanpath("data:scripts/modkit", "*.lua");
 
 	print("modkit.lua loaded successfully!\n\n");
+
+	H_MODKIT = 1;
 end

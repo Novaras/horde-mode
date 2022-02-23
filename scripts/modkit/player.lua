@@ -8,14 +8,14 @@ if (GLOBAL_TEAMS == nil) then dofilepath("data:scripts/modkit/team.lua"); end
 if (modkit_player_proto == nil) then
 
 	-- global memgroup for players
-	
+
 	function initPlayers()
 		if (GLOBAL_PLAYERS == nil) then
-			---@class GLOBAL_PLAYERS : MemGroup
+			---@class GLOBAL_PLAYERS : MemGroupInst
 			---@field _entities Player[]
 			---@field get fun(self: GLOBAL_PLAYERS, id: integer): Player
 			GLOBAL_PLAYERS = modkit.MemGroup.Create("mg-players-global");
-		
+
 			for i = 0, Universe_PlayerCount() - 1 do
 				GLOBAL_PLAYERS:set(i, modkit.table:merge(
 					modkit_player_proto,
@@ -82,7 +82,7 @@ if (modkit_player_proto == nil) then
 		if (amount) then
 			Player_SetRU(self.id, amount);
 		end
-		return Player_GetRU(self.id);		
+		return Player_GetRU(self.id);
 	end
 
 	-- Gets the total RUs gathered by this player
@@ -272,7 +272,18 @@ if (modkit_player_proto == nil) then
 			end
 		end
 
-
 		return after;
+	end
+
+	-- === stats getters (more to come pls)
+
+	function modkit_player_proto:fleetValue()
+		return modkit.table.reduce(
+			self:ships(),
+			function (total, ship)
+				return total + ship:buildCost();
+			end,
+			0
+		);
 	end
 end
