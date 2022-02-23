@@ -1,0 +1,11 @@
+
+-- formats:
+
+hitfx = "dmg_cloud_combo_small"
+bulletfx = "kinetic_mass_bullet"
+nopenetratefx = "dmg_cloud_combo_small"
+deathtype = "deathCannon"
+scartype = "Bullet/Bullet"
+hit_sfx = "WEAPON/FIGHTER/IMPACT/WEAPON_FIGHTER_PEA_SHOOTER_HIT"
+
+hit_clamp = {1.0, 1.0}
