@@ -189,14 +189,21 @@ base_research = {
 	{
 		Name = "Pulsar_EMP",
 		RequiredResearch = "NOGRANT",
+		RequiredSubSystems = "",
+		Cost = 0,
+		Time = 0,
+		DisplayedName = "",
+		DisplayPriority = 1005,
+		Description = "",
 		UpgradeType = Ability,
 		UpgradeName = "UseSpecialWeaponsInNormalAttack",
 		TargetType = Ship,
-		TargetName = "hgn_pulsarcorvette"
+		TargetName = "hgn_pulsarcorvette",
+		Icon = Icon_Ability
 	},
 	{
 		Name = "Delayed_Healing",
-		RequiredResearch = "NOGRANT"
+		RequiredResearch = "NOGRANT",
 	}
 }
 
