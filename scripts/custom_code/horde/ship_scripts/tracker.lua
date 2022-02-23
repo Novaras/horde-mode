@@ -2,12 +2,8 @@ if (makeStateHandle == nil) then
 	dofilepath("data:scripts/modkit/scope_state.lua");
 end
 
-if (REWARD_DIALOG_TRACKER_ROE_VALUES == nil) then
-	dofilepath("data:leveldata/campaign/say_wha/test_mission/lib.lua");
-end
-
-if (PHASE_REWARDS == nil) then
-	dofilepath("data:scripts/custom_code/horde/phase_rewards.lua");
+if (horde == nil) then
+	dofilepath("data:scripts/custom_code/horde/horde.lua");
 end
 
 ---@class HordeTrackerProto : Ship
@@ -30,7 +26,7 @@ horde_tracker_proto = {
 
 function horde_tracker_proto:manageRewards()
 	print("WHAT");
-	local reward = self:getSelectedReward();
+	local reward = horde.rewards:getSelectedReward();
 	if (reward) then
 		-- modkit.table.printTbl(reward, "REWARD");
 		if (reward.build_options) then
@@ -241,20 +237,6 @@ function horde_tracker_proto:manageWave()
 				});
 			end
 		end
-	end
-end
-
----@return _Rew
-function horde_tracker_proto:getSelectedReward()
-	local state = makeStateHandle();
-	local selected = state().selected;
-
-	-- modkit.table.printTbl(state(), "tracker state()");
-	if (selected and selected ~= -1) then
-		local r = modkit.table.find(_p, function (R)
-			return R.name == %state().selected;
-		end);
-		return r;
 	end
 end
 

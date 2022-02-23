@@ -5,7 +5,7 @@ UI_LoadUILibrary("data:ui/newui/horde/hordemodescreencode.lua");
 
 if (modkit == nil) then dofilepath("data:scripts/modkit/table_util.lua"); end
 
-if (PHASE_REWARDS == nil) then dofilepath("data:scripts/custom_code/horde/phase_rewards.lua"); end
+if (PHASE_REWARDS == nil) then dofilepath("data:scripts/custom_code/horde/lib/reward_configs.lua"); end
 
 local makeButtonCallbackStr = function (dialog_vals_index)
 	return "dofilepath(\"data:leveldata/campaign/say_wha/test_mission/lib.lua\"); UI_HideScreen(\"HordeModeScreen\"); SobGroup_SetROE(\"state_tracker\", REWARD_DIALOG_TRACKER_ROE_VALUES." .. dialog_vals_index .. ");";

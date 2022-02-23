@@ -3,8 +3,8 @@ if (modkit == nil) then dofilepath("data:scripts/modkit.lua"); end
 rules = modkit.campaign.rules;
 map = modkit.campaign.map;
 
-dofilepath("data:scripts/custom_code/horde/phase_rewards.lua");
-dofilepath("data:scripts/custom_code/horde/phase_configs.lua");
+dofilepath("data:scripts/custom_code/horde/lib/reward_configs.lua");
+dofilepath("data:scripts/custom_code/horde/lib/phase_configs.lua");
 dofilepath("data:leveldata/campaign/say_wha/test_mission/lib.lua");
 
 rules:init("data:leveldata/campaign/say_wha/test_mission/test_mission.level");
