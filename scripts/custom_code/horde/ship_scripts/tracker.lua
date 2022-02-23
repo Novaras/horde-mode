@@ -15,14 +15,24 @@ end
 ---@field rewards { a: _Rew, b: _Rew }
 ---@field doing_ui '0' | '1'
 horde_tracker_proto = {
-	rewards = nil
+	rewards = nil,
+	guard_types = {
+		"hgn_defensefieldfrigate",
+		"vgr_commandcorvette",
+		"kus_gravwellgenerator",
+		"tai_defensefighter",
+		"tai_fieldfrigate",
+		"tai_gravwellgenerator",
+		"kus_cloakgenerator",
+		"tai_cloakgenerator"
+	}
 };
 
 function horde_tracker_proto:manageRewards()
 	print("WHAT");
 	local reward = self:getSelectedReward();
 	if (reward) then
-		modkit.table.printTbl(reward, "REWARD");
+		-- modkit.table.printTbl(reward, "REWARD");
 		if (reward.build_options) then
 			print("apply build opts");
 			for _, opt in reward.build_options do
@@ -52,7 +62,7 @@ function horde_tracker_proto:manageRewards()
 		if (reward.spawn) then
 			print("spawn ships");
 			for _, spawn_data in reward.spawn do
-				modkit.table.printTbl(spawn_data, "spawn data");
+				-- modkit.table.printTbl(spawn_data, "spawn data");
 				for i = 1, spawn_data.count do
 					SobGroup_SpawnNewShipInSobGroup(
 						spawn_data.player,
@@ -73,10 +83,9 @@ function horde_tracker_proto:manageRewards()
 
 		self.doing_ui = 0;
 		self.rewards = -1;
-		makeStateHandle()({
-			awaiting_ui = 0,
-			rewards = -1;
-		});
+		local state = makeStateHandle();
+		state(state(), { omit = { "rewards", "selected" }, override = { awaiting_ui = 0 } });
+		-- modkit.table.printTbl(makeStateHandle()(), "state after rew");
 	end
 end
 
@@ -102,7 +111,7 @@ function horde_tracker_proto:spawnWaveShips(wave)
 			);
 		end
 	);
-	modkit.table.printTbl(conf_enemies_to_spawn, "sorting");
+	-- modkit.table.printTbl(conf_enemies_to_spawn, "sorting");
 	-- now sort by spawn_priority
 	sort(conf_enemies_to_spawn, function (spawn_a, spawn_b)
 		return spawn_a.spawn_priority < spawn_b.spawn_priority;
@@ -111,9 +120,9 @@ function horde_tracker_proto:spawnWaveShips(wave)
 	-- now define spawns
 	---@type string[]
 	local spawner_volumes = {};
-	for _, ship in modkit.ships():findType("horde_shipyard") do
-		ship:print();
-	end
+	-- for _, ship in modkit.ships():findType("horde_shipyard") do
+	-- 	ship:print();
+	-- end
 	local player_builder = modkit.ships():findType("horde_shipyard")[1] or modkit.ships():findType("hgn_carrier")[1];
 	for i = 1, 8 do
 		local vol_pos = {};
@@ -124,6 +133,12 @@ function horde_tracker_proto:spawnWaveShips(wave)
 		spawner_volumes[i] = Volume_Fresh("_horde_spawn_vol_" .. i, vol_pos, 2000);
 	end
 
+	local reactive_value = 0;
+	if (wave.config.add_reactive) then
+		-- (val - shipyard val) / d
+		reactive_value = max(self.human_player:fleetValue() - 3500, 0) / 50;
+	end
+
 	-- ok so, here we are spawning ships from the wave's config
 	-- we do this (in order) until their cumulative value is >= the config.value
 	-- also, when we spawn a ship, we greate a getter fn for it
@@ -132,27 +147,39 @@ function horde_tracker_proto:spawnWaveShips(wave)
 	local spawned_getters = {};
 	local spawned_value = 0;
 	local index_to_spawn = 0;
-	while(spawned_value < wave.config.value) do
+	local spawned_types = {};
+	while(spawned_value < (wave.config.value + reactive_value)) do
 		local spawn_config = conf_enemies_to_spawn[index_to_spawn + 1];
-		for i = 1, (spawn_config.min_count or 1) do
-			local spawn_group = SobGroup_Fresh();
-			local getSpawned = function ()
-				local sg = %spawn_group;
-				return modkit.ships():find(function (ship)
-					-- print("AreEqual: " .. ship.own_group .. ", " .. %sg .. ": " .. (SobGroup_AreEqual(ship.own_group, %sg) or "nil"));
-					return SobGroup_AreEqual(ship.own_group, %sg);
-				end) or sg;
-			end;
-			SobGroup_SpawnNewShipInSobGroup(
-				1,
-				spawn_config.type,
-				"-",
-				spawn_group,
-				modkit.table.randomEntry(spawner_volumes)[2]
-			);
-			spawned_value = spawned_value + (spawn_config.custom_price or SobGroup_GetStaticF(spawn_config.type, "buildCost"));
+		local maxed_out;
+		if (spawn_config.max_count and spawned_types[spawn_config.type]) then
+			if (spawn_config.max_count <= spawned_types[spawn_config.type]) then
+				maxed_out = 1;
+			end
+		end
+		-- print("spawning a " .. spawn_config.type);
+		if (maxed_out == nil) then
+			for i = 1, (spawn_config.min_count or 1) do
+				local spawn_group = SobGroup_Fresh();
+				local getSpawned = function ()
+					local sg = %spawn_group;
+					return modkit.ships():find(function (ship)
+						-- print("AreEqual: " .. ship.own_group .. ", " .. %sg .. ": " .. (SobGroup_AreEqual(ship.own_group, %sg) or "nil"));
+						return SobGroup_AreEqual(ship.own_group, %sg);
+					end) or sg;
+				end;
+				SobGroup_SpawnNewShipInSobGroup(
+					1,
+					spawn_config.type,
+					"-",
+					spawn_group,
+					modkit.table.randomEntry(spawner_volumes)[2]
+				);
+				spawned_value = spawned_value + (spawn_config.custom_price or SobGroup_GetStaticF(spawn_config.type, "buildCost"));
 
-			modkit.table.push(spawned_getters, getSpawned);
+				spawned_types[spawn_config.type] = (spawned_types[spawn_config.type] or 0) + 1;
+
+				modkit.table.push(spawned_getters, getSpawned);
+			end
 		end
 		index_to_spawn = mod(index_to_spawn + 1, modkit.table.length(conf_enemies_to_spawn));
 	end
@@ -160,7 +187,8 @@ function horde_tracker_proto:spawnWaveShips(wave)
 	-- modkit.table.printTbl(spawned_getters, "getters");
 
 	-- getter for the spawned ships (cant access them on the same tick as the spawn call)
-	self.spawnedWaveShips = function (self)
+	self.getSpawnedWaveShips = function (self)
+		print("expensive call");
 		-- execute the getters, filter out the ones which didnt produce `Ship` objects
 		return modkit.table.filter(
 			modkit.table.map(
@@ -175,6 +203,7 @@ function horde_tracker_proto:spawnWaveShips(wave)
 		);
 	end
 	self.spawn_grace_period_end_tick = self:tick() + 2;
+	self.spawned_merged = nil;
 
 	local state = makeStateHandle();
 	state({
@@ -194,18 +223,18 @@ function horde_tracker_proto:manageWave()
 	if (wave and type(wave) == "table") then
 		if (wave.init == nil) then
 			self:spawnWaveShips(wave);
-		elseif (self:tick() > self.spawn_grace_period_end_tick) then
-			print("len: " .. modkit.table.length(self:spawnedWaveShips()));
-			print("gt: " .. Universe_GameTime() .. " vs scheduled: " .. (wave.started_gametime + (wave.config.duration or 180)));
+		elseif (self:tick() > self.spawn_grace_period_end_tick and self.spawned_merged) then
+			local count = self.total_spawned_count or 0;
+			print("len: " .. count);
+			-- print("gt: " .. Universe_GameTime() .. " vs scheduled: " .. (wave.started_gametime + (wave.config.duration or 180)));
 			
 			if (
 				wave.finished ~= 1 and
 				(
-					modkit.table.length(self:spawnedWaveShips()) == 0 or
+					count == 0 or
 					Universe_GameTime() > (wave.started_gametime + (wave.config.duration or 180))
 				)
 			) then
-				print("see if we can just overwrite");
 				wave.finished = 1;
 				state({
 					running_wave = wave
@@ -220,7 +249,7 @@ function horde_tracker_proto:getSelectedReward()
 	local state = makeStateHandle();
 	local selected = state().selected;
 
-	modkit.table.printTbl(state(), "tracker state()");
+	-- modkit.table.printTbl(state(), "tracker state()");
 	if (selected and selected ~= -1) then
 		local r = modkit.table.find(_p, function (R)
 			return R.name == %state().selected;
@@ -315,6 +344,7 @@ function horde_tracker_proto:showUIIfWaiting()
 
 		print("tracker showing ui screen");
 		self:pickRewards();
+		-- modkit.table.printTbl(makeStateHandle()(), "state on show");
 		UI_ShowScreen("HordeModeScreen", ePopup);
 
 		UI_SetTextLabelText("HordeModeScreen", "reward_a_desc", self.rewards.a.description);
@@ -326,7 +356,7 @@ function horde_tracker_proto:showUIIfWaiting()
 end
 
 function horde_tracker_proto:update()
-	-- print("tracker health: " .. self:HP());
+	print("tracker tick " .. self:tick());
 
 	if (self.init == nil) then
 		self.init = 1;
@@ -348,86 +378,57 @@ function horde_tracker_proto:update()
 	if (self.doing_ui == 0) then
 		self:showUIIfWaiting();
 		self:manageWave();
-		self:manageEnemies();
+		if (self.spawn_grace_period_end_tick and self:tick() > self.spawn_grace_period_end_tick and self.getSpawnedWaveShips and mod(self:tick(), 3) == 0) then
+			self:manageEnemies();
+		end
 	else
 		self:manageRewards();
 	end
 end
 
--- ---@param ship Ship
--- function horde_tracker_proto:smartAttackManage(ship)
--- 	if (ship:isAnyTypeOf({
--- 		""
--- 	})) then
-		
--- 	end
--- end
+---@param ship Ship
+---@param player_ships Ship[]
+function horde_tracker_proto:smartAttackManage(ship, player_ships, control_ships)
+	-- local player_enemy_ships = modkit.ships():filter(function (ship)
+	-- 	return ship.player.id == 1;
+	-- end);
 
--- here we control the phase enemies
-function horde_tracker_proto:manageEnemies()
-	local player_ships = modkit.ships():filter(function (ship)
-		return ship.player.id == 0;
-	end);
-	local player_enemy_ships = modkit.ships():filter(function (ship)
-		return ship.player.id == 1;
-	end);
-	---@type Ship[]
-	local wave_spawned_ships = {};
-	if (self.spawnedWaveShips) then
-		wave_spawned_ships = self:spawnedWaveShips();
-	end
+	if (ship:isAnyTypeOf(self.guard_types)) then -- do guard behavior instead
+		---@alias GuardFilter fun(ship: Ship): Ship[]
+		---@alias FilterConfig { guarding_types: string[], filter: GuardFilter }
+		---@type FilterConfig[]
+		self.guard_filter_configs = self.guard_filter_configs or {
+			gravwell = {
+				guarding_types = { "kus_gravwellgenerator", "tai_gravwellgenerator" },
+				filter = function (ship)
+					return ship:isAnyTypeOf({ 
+						"kus_missiledestroyer",
+						"tai_missiledestroyer",
+						"hgn_torpedofrigate",
+						"kus_assaultfrigate",
+						"tai_assaultfrigate"
+					}) or ship:isAnyFamilyOf({
+						"bigcapitalship",
+						"smallcapitalship",
+						"frigate"
+					});
+				end
+			},
+			default = {
+				guarding_types = self.guard_types,
+				filter = function (ship)
+					return ship:isAnyTypeOf(%self.guard_types) == nil;
+				end
+			}
+		};
 
-	local guard_types = {
-		"hgn_defensefieldfrigate",
-		"vgr_commandcorvette",
-		"kus_gravwellgenerator",
-		"tai_defensefighter",
-		"tai_fieldfrigate",
-		"tai_gravwellgenerator",
-		"kus_cloakgenerator",
-		"tai_cloakgenerator"
-	};
-	---@alias GuardFilter fun(ship: Ship): Ship[]
-	---@alias FilterConfig { guarding_types: string[], filter: GuardFilter }
-	---@type FilterConfig[]
-	local guard_filter_configs = {
-		gravwell = {
-			guarding_types = { "kus_gravwellgenerator", "tai_gravwellgenerator" },
-			filter = function (ship)
-				return ship:isAnyTypeOf({
-					"kus_missiledestroyer",
-					"tai_missiledestroyer",
-					"hgn_torpedofrigate",
-					"kus_assaultfrigate",
-					"tai_assaultfrigate"
-				}) or ship:isAnyFamilyOf({
-					"bigcapitalship",
-					"smallcapitalship",
-					"frigate"
-				});
-			end
-		},
-		default = {
-			guarding_types = guard_types,
-			filter = function (ship)
-				return ship:isAnyTypeOf(%guard_types) == nil;
-			end
-		}
-	};
-
-	for _, ship in wave_spawned_ships do
-		-- if (ship:isFighter() == nil) then
-		-- 	print("control for " .. ship.own_group .. "(a " .. ship.type_group .. ")");
-		-- 	print("\tcommand is " .. ship:currentCommand() .. " (COMMAND_Idle is " .. COMMAND_Idle .. ")");
-		-- end
-
-		if (modkit.table.includesValue(guard_types, ship.type_group)) then
-			---@type FilterConfig
-			local filter_config = modkit.table.find(guard_filter_configs, function (filter_config)
-				return modkit.table.includesValue(filter_config.guarding_types, %ship.type_group);
-			end);
-			---@type Ship[]
-			local guard_targets = modkit.ships():allied(ship, filter_config.filter);
+		---@type FilterConfig
+		local filter_config = modkit.table.find(self.guard_filter_configs, function (filter_config)
+			return modkit.table.includesValue(filter_config.guarding_types, %ship.type_group);
+		end);
+		---@type Ship[]
+		local guard_targets = modkit.table.filter(control_ships, filter_config.filter);
+		if (guard_targets) then
 			-- for _, ship in guard_targets do
 			-- 	ship:print();
 			-- end
@@ -436,64 +437,125 @@ function horde_tracker_proto:manageEnemies()
 			sort(guard_targets, function (a, b)
 				return %ship:distanceTo(a) < %ship:distanceTo(b);
 			end);
-			local guard_target = guard_targets[1]; -- closest 3
-			if (guard_target) then
-				local max_threshold = 15000;
-				local out_of_pos_threshold = 600;
-				if (guard_target:isFighter() or guard_target:isCorvette()) then
-					out_of_pos_threshold = 1200;
+		end
+		local guard_target = guard_targets[1]; -- best target only
+		if (guard_target) then
+			local max_threshold = 15000;
+			local out_of_pos_threshold = 600;
+			if (guard_target:isFighter() or guard_target:isCorvette()) then
+				out_of_pos_threshold = 1200;
+			end
+			if (ship:distanceTo(guard_target) > max_threshold) then
+				ship:position(modkit.table.map(guard_target:position(), function (axis, index)
+					return axis + (modkit.math.pow(-1, index) * 300);
+				end));
+			elseif (ship:distanceTo(guard_target) > out_of_pos_threshold) then
+				local speedup = 1;
+				local g = SobGroup_Fresh();
+				Player_FillProximitySobGroup(g, 0, ship.own_group, 5000);
+				if (SobGroup_Count(g) == 0) then
+					speedup = min(3, max(1, ship:distanceTo(guard_target) / out_of_pos_threshold))
 				end
-				if (ship:distanceTo(guard_target) > max_threshold) then
-					ship:position(modkit.table.map(guard_target:position(), function (axis, index)
-						return axis + (modkit.math.pow(-1, index) * 300);
-					end));
-				elseif (ship:distanceTo(guard_target) > out_of_pos_threshold) then
-					local speedup = min(3, max(1, ship:distanceTo(guard_target) / out_of_pos_threshold));
-					-- print(ship.own_group .. " speedup: " .. speedup);
-					ship:speed(speedup);
-					ship:move(guard_target);
-				else
-					ship:speed(1);
-					ship:guard(guard_target);
-					if (ship:isAnyTypeOf({ "kus_cloakgenerator", "tai_cloakgenerator" })) then
-						ship:cloak(0);
-					elseif (ship.type_group == "hgn_defensefieldfrigate") then
-						ship:canDoAbility(AB_DefenseField, 1);
-					end
-				end
+				-- print(ship.own_group .. " speedup: " .. speedup);
+				ship:speed(speedup);
+				ship:move(guard_target);
 			else
-				ship:kamikazi(player_ships);
-				ship:HP(ship:HP() - 0.02);
+				ship:speed(1);
+				ship:guard(guard_target);
+				if (ship:isAnyTypeOf({ "kus_cloakgenerator", "tai_cloakgenerator" })) then
+					ship:cloak(0);
+				elseif (ship.type_group == "hgn_defensefieldfrigate") then
+					ship:canDoAbility(AB_DefenseField, 1);
+				end
 			end
 		else
-			if (ship:canHyperspace() == 1) then
-				if (random() < 0.1) then
-					if (ship:distanceTo(ship:commandTargets(COMMAND_Attack)) > 5000 or ship:isBeingCaptured()) then
-						print(ship.own_group .. " deciding to jump!");
-						local pos = modkit.ships(ship:commandTargets(COMMAND_Attack)):avgPosition();
-						for axis, value in pos do
-							if (axis == 2) then
-								pos[axis] = 1000;
-							else
-								-- station pos +- [1000 - 1750]
-								pos[axis] = value + modkit.math.pow(-1, random(1, 2)) * random(1000, 1750);
-							end
+			ship:kamikazi(player_ships);
+			ship:HP(ship:HP() - 0.05);
+		end
+	else -- no special attack behavior
+		if (ship:canHyperspace() == 1) then
+			local chance = max(0.01, (1 - ship:HP()) / 10);
+			if (random() < chance) then
+				if (ship:distanceTo(ship:commandTargets(COMMAND_Attack)) > 8000 or ship:isBeingCaptured()) then
+					print(ship.own_group .. " deciding to jump!");
+					local pos = modkit.ships(ship:commandTargets(COMMAND_Attack)):avgPosition();
+					for axis, value in pos do
+						if (axis == 2) then
+							pos[axis] = 1000;
+						else
+							-- station pos +- [1000 - 1750]
+							pos[axis] = value + modkit.math.pow(-1, random(1, 2)) * random(1000, 1750);
 						end
-						-- modkit.table.printTbl(pos, "jumping to pos");
-						ship:hyperspace(pos);
 					end
+					-- modkit.table.printTbl(pos, "jumping to pos");
+					ship:hyperspace(pos);
 				end
 			end
-
-			ship:attack(modkit.table.filter(player_ships, function (ship)
-				return ship:isCloaked();
-			end));
 		end
 
-		-- need to make sure capship engines dont die (so player cant stall forever)
-		-- hp = min(1, max(current_hp, 0.05))
-		if (ship:hasSubsystem("Engine")) then
-			ship:subsHP("Engine", min(1, max(ship:subsHP("Engine"), 0.05)));
+		ship:attack(modkit.table.filter(player_ships, function (ship)
+			return ship:isCloaked() == 0;
+		end));
+	end
+end
+
+function horde_tracker_proto:getNextControlBatch()
+	self.control_batch_size = self.control_batch_size or 80;
+	local max_index = self.total_spawned_count;
+
+	local start_index = mod(min(self.last_batch_index or 0, max_index), max_index) + 1;
+	local finish_index = min(start_index + self.control_batch_size, max_index);
+	local batch = {};
+	-- print("si: " .. start_index);
+	-- print("fi: " .. finish_index);
+	-- for k, v in self.total_spawned_ships do
+	-- 	print(k);
+	-- 	v:print();
+	-- 	print("--");
+	-- end
+	for i = start_index, finish_index do
+		batch[i] = self.total_spawned_ships[i];
+	end
+
+	self.last_batch_index = finish_index;
+	return batch;
+end
+
+-- here we control the phase enemies
+function horde_tracker_proto:manageEnemies()
+	if (self.spawned_merged == nil) then
+		local spawned_ships = modkit.table.clone(self:getSpawnedWaveShips());
+		self.getSpawnedWaveShips = function (self)
+			return %spawned_ships;
+		end
+		self.total_spawned_ships = modkit.table.pack(modkit.table:merge(
+			self.total_spawned_ships,
+			spawned_ships
+		));
+		self.total_spawned_count = modkit.table.length(self.total_spawned_ships);
+
+		self.spawned_merged = 1;
+	end
+
+	if (self.total_spawned_ships) then
+		self.total_spawned_ships = modkit.table.pack(modkit.table.filter(self.total_spawned_ships, function (ship)
+			return ship:alive() == 1;
+		end));
+		self.total_spawned_count = modkit.table.length(self.total_spawned_ships);
+	end
+
+	if (self.total_spawned_count > 0) then
+		local player_ships = self.human_player:ships();
+		local control_ships = self:getNextControlBatch();
+		print("cntrl ships len: " .. modkit.table.length(control_ships));
+		for _, ship in control_ships do
+			self:smartAttackManage(ship, player_ships, self.total_spawned_ships);
+
+			-- need to make sure capship engines dont die (so player cant stall forever)
+			-- hp = min(1, max(current_hp, 0.05))
+			if (ship:hasSubsystem("Engine")) then
+				ship:subsHP("Engine", min(1, max(ship:subsHP("Engine"), 0.05)));
+			end
 		end
 	end
 end
