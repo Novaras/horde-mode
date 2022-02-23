@@ -130,12 +130,15 @@ NewShipType.launchFormation="delta"
 addAbility(NewShipType,"ParadeCommand",1);
 addAbility(NewShipType,"WaypointMove");
 addAbility(NewShipType,"HyperSpaceCommand",1,1,200,500,0,3);
-addAbility(NewShipType,"CanAttack",1,1,0,1,0.35,1.5,"Capturer, Frigate, SmallCapitalShip, BigCapitalShip, Mothership, Utility, Corvette, Corvette_hw1, Fighter, Fighter_hw1","Frontal",
+addAbility(NewShipType,"CanAttack",1,1,0,1,0.35,1.5,"Capturer, Frigate, SmallCapitalShip, BigCapitalShip, Utility, Mothership, Corvette, Corvette_hw1, Fighter, Fighter_hw1","Frontal",
 {SubSystem="FrontalVsSubSystem"},
 {Fighter="frontal_vs_fighter"},
 {Fighter_hw1="frontal_vs_fighter"},
 {Corvette="frontal_vs_fighter"},
-{Corvette="frontal_vs_fighter"});
+{Corvette="frontal_vs_fighter"},
+{Corvette_hw1="frontal_vs_fighter"},
+{SmallCapitalShip="frontal_frigate"},
+{BigCapitalShip="frontal_frigate"});
 addAbility(NewShipType,"GuardCommand",1,3000,600);
 addAbility(NewShipType,"HyperspaceViaGateCommand",1,3,1,0.3);
 addAbility(NewShipType,"CanBeSalvageCaptured",0,1,0,0,1,"SalCap");
@@ -160,7 +163,7 @@ loadShipPatchList(NewShipType,"data:sound/sfx/ship/",0,"Hiigaran/Frigate/Engines
 NewShipType.minFalloffDamageDist=100
 NewShipType.maxFalloffDamageDist=100*2
 NewShipType.maxFalloffScuttleDamageDist=100*4
-NewShipType.explosiveScuttleDamageOnDeath=975
+NewShipType.explosiveScuttleDamageOnDeath=100
 NewShipType.maxFalloffForce=500*10
 NewShipType.explosiveDamageOnDeath=195	
 NewShipType.radiusDamageEvadeMod=1.1
