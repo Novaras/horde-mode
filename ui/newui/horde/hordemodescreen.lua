@@ -162,11 +162,11 @@ HordeModeScreen = {
 						name = "reward_a_desc",
 						wrapping = 1,
 						Layout = {
-							margin_RB = { r = 0, b = 24, rr = "px", br = "px" }
+							margin_RB = { r = 0, b = 24, rr = "px", br = "px" },
+							size_WH = { w = 1, h = 1, wr = "par", hr = "par" }
 						},
-						autosize = 1,
 						Text = {
-							text = "god help us all",
+							text = "A",
 							textStyle = "FEHelpTipTextStyle",
 							vAlign = "Top",
 						},
@@ -189,7 +189,8 @@ HordeModeScreen = {
 					},
 					Layout = {
 						size_WH = {w = 0.45, h = 1, wr = "par", hr = "par",},
-						pad_LT = { l = 0.05, t = 32, lr = "par", tr = "px" }
+						pad_LT = { l = 0.05, t = 32, lr = "par", tr = "px" },
+						pad_RB = { r = 0.05, b = 0, rr = "par", br = "px" },
 					},
 					arrangetype = "vert",
 					;
@@ -216,11 +217,11 @@ HordeModeScreen = {
 						name = "reward_b_desc",
 						wrapping = 1,
 						Layout = {
-							margin_RB = { r = 0, b = 24, rr = "px", br = "px" }
+							margin_RB = { r = 0, b = 24, rr = "px", br = "px" },
+							size_WH = { w = 1, h = 1, wr = "par", hr = "par" }
 						},
-						autosize = 1,
 						Text = {
-							text = "+6000RU\n+20% Station Health\t+10% Sensors Range",
+							text = "B",
 							textStyle = "FEHelpTipTextStyle",
 							vAlign = "Top",
 						},

@@ -90,10 +90,11 @@ end
 
 function GetHordeShipYardHealthStr()
 	dofilepath("data:scripts/modkit/scope_state.lua");
+	local str = "<<awaiting init>>";
 	if (dostring) then
-		local sy = makeStateHandle()().ui_player_shipyard_health_str;
+		str = makeStateHandle()().ui_player_shipyard_health_str or str;
 	end
-	return sy or "<<awaiting init>>";
+	return str;
 end
 
 local weaponfire_icon_layout = {

@@ -6,24 +6,40 @@ PHASE_CONFIGS = {
 				value = 2000,
 				enemy_types = {
 					"tai_multiguncorvette",
-					"tur_ionarrayfrigate"
+					{
+						type = "tur_ionarrayfrigate",
+						custom_price = 1001
+					},
+					"vgr_commandcorvette"
 				},
 			},
 			[2] = {
-				value = 2200,
+				value = 2100,
 				enemy_types = {
-					"kus_lightcorvette",
-					"hgn_assaultfrigate",
-					"kus_attackbomber"
+					{
+						type = "tai_attackbomber",
+						min_count = 6
+					},
+					{
+						type = "vgr_assaultfrigate",
+						spawn_priority = 1
+					},
+					{
+						type = "tai_defensefighter",
+						min_count = 3
+					},
+					"vgr_interceptor"
 				},
 			},
 			[3] = {
-				value = 2750,
+				value = 3200,
 				enemy_types = {
 					"kus_assaultfrigate",
 					"tai_assaultfrigate",
-					"hgn_interceptor",
-					"tai_defensefighter",
+					{
+						type = "tai_defensefighter",
+						min_count = 3
+					},
 					"kad_multibeamfrigate"
 				}
 			}
@@ -32,22 +48,27 @@ PHASE_CONFIGS = {
 	[2] = {
 		waves = {
 			[1] = {
-				value = 4200,
+				value = 5000,
 				enemy_types = {
-					"tai_destroyer",
 					"vgr_commandcorvette",
-					"kus_assaultfrigate",
-					"vgr_heavymissilefrigate"
+					"vgr_bomber",
+					"vgr_lancefighter",
+					{
+						type = "vgr_interceptor",
+						custom_price = 200
+					}
 				}
 			},
 			[2] = {
 				value = 6000,
 				enemy_types = {
-					"kus_missiledestroyer",
+					{
+						type = "kus_missiledestroyer",
+						max_count = 1
+					},
 					"tai_gravwellgenerator",
 					"vgr_heavymissilefrigate",
-					"vgr_commandcorvette",
-					"hgn_torpedofrigate"
+					"vgr_commandcorvette"
 				}
 			},
 			[3] = {
@@ -56,14 +77,15 @@ PHASE_CONFIGS = {
 				enemy_types = {
 					{
 						type = "kus_heavycruiser",
-						min_count = 1
+						min_count = 1,
+						max_count = 1
 					},
-					"tai_destroyer",
-					"hgn_ioncannonfrigate",
-					"tai_defender",
-					"kus_defender",
+					"tai_ioncannonfrigate",
+					"tai_defensefighter",
+					"kus_dronefrigate",
 					"kus_gravwellgenerator",
-					"tai_fieldfrigate"
+					"tai_fieldfrigate",
+					"kus_ioncannonfrigate"
 				}
 			}
 		}
@@ -74,26 +96,30 @@ PHASE_CONFIGS = {
 				value = 10000,
 				add_reactive = 1,
 				enemy_types = {
-					"hgn_destroyer",
 					"vgr_destroyer",
 					"kus_missiledestroyer",
-					"kad_multibeamfrigate",
+					"vgr_lasercorvette",
+					"tur_ionarrayfrigate",
 					"vgr_commandcorvette",
-					"kus_gravwellgenerator"
+					"tai_gravwellgenerator"
 				}
 			},
 			[2] = {
-				value = 10000,
+				value = 11000,
 				add_reactive = 1,
 				enemy_types = {
 					{
 						type = "kad_advancedswarmer",
 						min_count = 30,
-						custom_price = 50
+						custom_price = 60
 					},
 					"tai_defensefighter",
-					"kus_attackbomber",
-					"tai_attackbomber"
+					"kad_multibeamfrigate",
+					{
+						type = "kad_p2mothership",
+						min_count = 1,
+						max_count = 2
+					}
 				}
 			},
 			[3] = {
@@ -106,7 +132,10 @@ PHASE_CONFIGS = {
 						max_count = 1
 					},
 					"kpr_mover",
-					"kpr_attackdroid",
+					{
+						type = "kpr_attackdroid",
+						custom_price = 400
+					},
 					"tai_multiguncorvette",
 					"tai_heavycorvette",
 					"kus_gravwellgenerator",
@@ -126,7 +155,11 @@ PHASE_CONFIGS = {
 					"tai_fieldfrigate",
 					"tai_ioncannonfrigate",
 					"kus_ioncannonfrigate",
-					"kus_assaultfrigate"
+					"kus_assaultfrigate",
+					"vgr_heavymissilefrigate",
+					"vgr_assaultfrigate",
+					"kad_multibeamfrigate",
+					"tur_ionarrayfrigate"
 				}
 			},
 			[2] = {
@@ -134,10 +167,16 @@ PHASE_CONFIGS = {
 				enemy_types = {
 					"tai_defensefighter",
 					"vgr_lasercorvette",
+					"vgr_missilecorvette",
 					"kpr_mover",
-					"tur_standardcorvette",
+					"kus_heavycorvette",
 					"tai_heavycorvette",
-					"kus_multiguncorvette"
+					"kus_multiguncorvette",
+					"vgr_commandcorvette",
+					{
+						type = "vgr_battlecruiser",
+						max_count = 1
+					}
 				}
 			},
 			[3] = {
@@ -146,16 +185,16 @@ PHASE_CONFIGS = {
 					{
 						type = "kpr_sajuuk",
 						min_count = 1,
-						custom_price = 25000
+						max_count = 1
 					},
-					"hgn_attackbomber",
+					"vgr_bomber",
 					"kus_attackbomber",
 					"tai_interceptor",
 					"vgr_commandcorvette",
 					"tai_defensefighter",
 					{
 						type = "kad_advancedswarmer",
-						custom_price = 10
+						custom_price = 100
 					},
 					"kpr_destroyerm10",
 				}

@@ -23,12 +23,13 @@ for index, phase in PHASE_CONFIGS do
 	);
 end
 
+local grace_period_time = 90;
 local grace_period_rule = rules:make(
 	"grace_period",
-	makeGracePeriodRule(60)
+	makeGracePeriodRule(grace_period_time)
 );
 rules:begin(grace_period_rule);
-UI_SetTimerOffset("NewTaskbar", "GameTimer", -60);
+UI_SetTimerOffset("NewTaskbar", "GameTimer", -grace_period_time);
 
 rules:on(
 	grace_period_rule.id,
@@ -43,10 +44,20 @@ rules:on(
 			phase_manager_rule.id,
 			function ()
 				Subtitle_Message("all phases complete!", 5);
+				PHASES_DONE = 1;
 			end
 		);
 	end
-)
+);
+
+local game_end_rule = rules:make("game_end_rule", function (state, rules)
+	if (SobGroup_Count("Player_Ships" .. 0) == 0) then
+		setMissionComplete(0);
+	elseif (PHASES_DONE) then
+		setMissionComplete(1);
+	end
+end);
+rules:begin(game_end_rule);
 
 -- we can use p2 as an ally to control big swarms (poorly microed mass units)
 SetAlliance(0, 2);
@@ -74,9 +85,8 @@ Player_RestrictBuildOption(0, "hgn_ms_module_cloakgenerator");
 Player_RestrictBuildOption(0, "hgn_c_module_cloakgenerator");
 
 SobGroup_CreateSubSystem(GLOBAL_MISSION_SHIPS:get('player_initbuilder').own_group, "hgn_ms_module_research");
--- for k, v in globals() do
--- 	print(k .. ": " .. tostring(v));
--- end
+
+Player_GrantAllResearch(1);
 
 -- UI_ShowScreen("HordeModeScreen", ePopup);
 
@@ -84,3 +94,10 @@ SobGroup_CreateSubSystem(GLOBAL_MISSION_SHIPS:get('player_initbuilder').own_grou
 -- Player_GrantResearchOption(0, "Corvette_FlakWeapons");
 -- Player_GrantResearchOption(0, "Bomber_Cloaking");
 -- Player_GrantResearchOption(0, "Delayed_Healing");
+-- Player_GrantResearchOption(0, "Pulsar_EMP");
+
+if (makeStateHandle == nil) then
+	dofilepath("data:scripts/modkit/scope_state.lua");
+end
+
+modkit.table.printTbl(makeStateHandle()(), "STATE");

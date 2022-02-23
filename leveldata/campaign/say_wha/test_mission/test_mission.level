@@ -26,7 +26,7 @@ player[2] = {
   id = 2,
   name = "StartPos2",
   resources = 5000,
-  raceName = "Hiigaran",
+  raceName = "Vaygr",
   startPos = 1,
 }
 

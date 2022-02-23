@@ -9,6 +9,7 @@ REWARD_DIALOG_TRACKER_ROE_VALUES = {
 ---@field value integer
 ---@field enemy_types table<integer, string | { type: string, min_count: integer }>
 ---@field duration integer
+---@field add_reactive bool
 
 ---@class Wave
 ---@field init bool
@@ -254,18 +255,23 @@ function makePhaseManagerRule()
 		print("running id: " .. (state.running_index or "nil"));
 
 		if (state.initialised == 1 and state.running_index == nil) then -- init but no phase = waiting for UI result
-			
-			if (UI_IsScreenActive("HordeModeScreen") == 0 and makeStateHandle()().awaiting_ui == 0) then -- above but no active screen = UI result available
+			local globalStateHnd = makeStateHandle();
+			if (UI_IsScreenActive("HordeModeScreen") == 0 and globalStateHnd().awaiting_ui == 0) then -- above but no active screen = UI result available
 				print("UI result available!");
-				Universe_Pause(0, 0);
-				-- local rules = modkit.campaign.rules;
-				-- local grace_period_rule = rules:make("phase_grace_period", makeGracePeriodRule(30));
-				-- rules:begin(grace_period_rule);
-				-- rules:on(grace_period_rule.id, function ()
-				-- 	%state:phaseBegin(%rules);
-				-- end);
 
-				state:phaseBegin(rules);
+				-- here we init a grace period between phases
+				-- if not init, set to now + 20
+				if (globalStateHnd().awaiting_ui_gt == nil) then
+					globalStateHnd({
+						awaiting_ui_gt = Universe_GameTime() + 20
+					});
+				end
+				-- if gt > whatever we set, period is ended
+				modkit.table.printTbl(globalStateHnd(), "stateHnd");
+				if (Universe_GameTime() > globalStateHnd().awaiting_ui_gt) then
+					state:phaseBegin(rules);
+					globalStateHnd({ omit = { "awaiting_ui_gt" }});
+				end
 			else
 				print("awaiting UI result");
 			end
