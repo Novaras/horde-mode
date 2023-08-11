@@ -4,7 +4,9 @@
 
 if (nil) then
 
-	---@alias bool '1'|'nil'
+	arg = {};
+
+	---@alias bool '1'|nil|true|false|1
 
 	AB_None = 0;
 	AB_Move = 1;

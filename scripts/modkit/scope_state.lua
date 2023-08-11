@@ -2,7 +2,7 @@ if (modkit == nil) then
 	dofilepath("data:scripts/modkit/table_util.lua");
 end
 
----@type fun(screen_name: string, dropdown_host_el: string)
+---@type fun(screen_name?: string, dropdown_host_el?: string)
 makeStateHandle = makeStateHandle or function (screen_name, dropdown_host_el)
 	screen_name = screen_name or "DefaultStateScreen";
 	dropdown_host_el = dropdown_host_el or "host_dropdown";
@@ -14,10 +14,9 @@ makeStateHandle = makeStateHandle or function (screen_name, dropdown_host_el)
 
 	return function(new_state, custom_key_behaviors, overwrite)
 		UI_SelectDropDownListboxItemIndex(%screen_name, %dropdown_host_el, 0);
-		-- print("CURRENT UI_STR STATE:");
-		-- print(UI_GetDropdownListBoxSelectedCustomDataString(%screen_name, %dropdown_host_el) or "{}");
+		local ui_str = UI_GetDropdownListBoxSelectedCustomDataString(%screen_name, %dropdown_host_el);
 
-		local current_state = dostring("return " .. (UI_GetDropdownListBoxSelectedCustomDataString(%screen_name, %dropdown_host_el) or "{}"));
+		local current_state = dostring("return " .. (ui_str or "{}"));
 
 		if (new_state) then
 			UI_ClearDropDownListbox(%screen_name, %dropdown_host_el);
