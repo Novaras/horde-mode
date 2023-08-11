@@ -18,19 +18,23 @@ function _printTbl(table, indent, output, no_recurse)
 		end
 	end
 	for k, v in table do
-		if type(v) == "table" then
-			if (no_recurse) then
-				output(indent_str .. tostring(v)); -- just print address
+		if (type) then
+			if type(v) == "table" then
+				if (no_recurse) then
+					output(indent_str .. tostring(v)); -- just print address
+				else
+					output(indent_str .. "\"" .. k .. "\": {");
+					_printTbl(v, indent + 1, output, no_recurse);
+					output(indent_str .. "},");
+				end
 			else
-				output(indent_str .. "\"" .. k .. "\": {");
-				_printTbl(v, indent + 1, output, no_recurse);
-				output(indent_str .. "},");
+				if (type(v) ~= "number") then
+					v = "\"" .. tostring(v) .. "\"";
+				end
+				output(indent_str .. "\"" .. k .. "\": " .. v .. ',');
 			end
 		else
-			if (type(v) ~= "number") then
-				v = "\"" .. tostring(v) .. "\"";
-			end
-			output(indent_str .. "\"" .. k .. "\": " .. v .. ',');
+			output(indent_str .. "\"" .. k .. "\": " .. tostring(v) .. ',');
 		end
 	end
 end
@@ -45,7 +49,7 @@ if (modkit.table == nil) then
 		--- Returns a new table comprised of elements in `table` which pass the given `predicate` function (any non-`nil` return is considered a 'pass').
 		---
 		---@param table table
-		---@param predicate fun(val: any, index: any, tbl: table)
+		---@param predicate fun(val: any, index: any, tbl: table): bool
 		---@return table
 		filter = function (table, predicate)
 			local out = {};
@@ -127,22 +131,42 @@ if (modkit.table == nil) then
 			table[modkit.table.length(table) + 1] = value;
 			return table;
 		end,
-		firstKey = function (tbl)
-			local lowest_k = modkit.table.length(tbl); -- highest k
-			for k, v in tbl do
-				if (k < lowest_k) then
-					lowest_k = k;
+		pop = function (table)
+			local original = table[modkit.table.length(table)];
+			local out = {};
+			for k, v in table do
+				if (k ~= modkit.table.firstKey(table)) then
+					out[k] = v;
 				end
 			end
-			return lowest_k;
+			table = out;
+			return v;
 		end,
+		shift = function (tbl)
+			local v = tbl[modkit.table.firstKey(tbl)];
+			tbl[modkit.table.firstKey(tbl)] = nil;
+			return v;
+		end,
+		unshift = function (tbl, value)
+			local out = {};
+			modkit.table.push(out, value);
+			for k, v in tbl do
+				out[k + 1] = v;
+			end
+			return out;
+		end,
+		firstKey = function (tbl)
+			for k, _ in tbl do
+				return k;
+			end
+		end,
+		---@return bool
 		any = function (tbl, predicate)
 			for k, v in tbl do
 				if (predicate(v, k, tbl)) then
 					return 1;
 				end
 			end
-			return nil;
 		end,
 		all = function (tbl, predicate)
 			for k, v in tbl do
@@ -179,9 +203,19 @@ if (modkit.table == nil) then
 		end,
 
 		slice = function (tbl, i, j)
+			j = j or modkit.table.length(tbl);
 			local out = {};
 			for index = i, j do
 				out[index] = tbl[index];
+			end
+			return out;
+		end,
+
+		reverse = function (tbl)
+			local out = {};
+			local l = modkit.table.length(tbl);
+			for i = l, 0, -1 do
+				out[i] = tbl[l - i];
 			end
 			return out;
 		end
@@ -203,6 +237,37 @@ if (modkit.table == nil) then
 
 	function table.first(tbl)
 		return tbl[%table.firstKey(tbl)];
+	end
+
+	--- Returns a string representation of a table. Whitespace and newlines are removed.
+	---
+	---@param tbl table
+	---@return string
+	function table.stringify(tbl)
+		local result = "{";
+		for k, v in tbl do
+			-- convert the key to a string
+			if (type(k) == "number") then
+				k = "[" .. k .. "]";
+			elseif (type(k) == "string") then
+				k = '["' .. k .. '"]';
+			end
+
+			-- convert the value to a string
+			if (type(v) == "table") then
+				v = %table.stringify(v);
+			elseif (type(v) == "string") then
+				v = '"' .. v .. '"';
+			else
+				v = tostring(v);
+			end
+
+			-- add the key-value pair to the result string
+			result = result .. k .. "=" .. v .. ",";
+		end
+		result = result .. "}";
+
+		return result;
 	end
 
 	--- _Clones_ a table, meaning the table is copied by value (a new table is created),
@@ -245,21 +310,30 @@ if (modkit.table == nil) then
 	---@param tbl table
 	---@param label? string
 	---@param no_recurse? any If non-nil, sub-tables are not printed and their addresses are printed instead
-	function table.printTbl(tbl, label, no_recurse)
-		if (label == nil) then
-			---@type string
-			label = tostring(tbl);
-		end
+	---@param output_fn? fun(...: any[]): nil
+	---@param no_label? nil|1
+	function table.printTbl(tbl, label, no_recurse, output_fn, no_label)
 		local temp_table = {};
-		temp_table[label] = tbl;
-		_printTbl(temp_table, 0, print, no_recurse);
+
+		if (no_label == nil) then
+			if (label == nil) then
+				---@type string
+				label = tostring(tbl);
+			end
+	
+			temp_table[label] = tbl;
+		else
+			temp_table = tbl;
+		end
+		
+		_printTbl(temp_table, 0, output_fn or print, no_recurse);
 	end
 
 	function table:merge(tbl_a, tbl_b, merger)
 		if (self.merge == nil) then
 			print("\n[modkit] Error: table:merge must be called as a method (table:merge vs table.merge)");
 		end
-		merger = merger or function (a, b)
+		merger = merger or function (a, b, k, t)
 			if (type(a) == "table" and type(b) == "table") then
 				return %self:merge(a, b);
 			else
@@ -282,7 +356,7 @@ if (modkit.table == nil) then
 			if (out[k] == nil) then
 				out[k] = v;
 			else
-				out[k] = merger(out[k], v);
+				out[k] = merger(out[k], v, k, out);
 			end
 		end
 		return out;
