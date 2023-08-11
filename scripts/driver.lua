@@ -2,9 +2,22 @@
 -- Ships hook here instead of their own nested scripts
 -- Do not edit unless you know what you're doing.
 
-function NOOP() end
+--- Does nothing: no-operation
+NOOP = NOOP or function()
+	--
+end
 
 if (H_DRIVER == nil) then
+	---@alias HookFn fun(self: DriverShip, group?: string, player_index?: number, ship_id?: number)
+
+	---@class DriverShip: Ship
+	---@field create HookFn
+	---@field update HookFn
+	---@field destroy HookFn
+	---@field start HookFn
+	---@field go HookFn
+	---@field finish HookFn
+	---@field auto_exec table
 
 	if (modkit == nil) then
 		dofilepath("data:scripts/modkit.lua");
@@ -12,7 +25,9 @@ if (H_DRIVER == nil) then
 
 	---@class ShipCollection : SheduledFilters, MemGroupInst
 	---@field _entities Ship[]
-	---@field all fun(): Ship[]
+	---@field get fun(self: ShipCollection, entity_id: number): Ship
+	---@field set fun(self: ShipCollection, entity_id: number, ship: Ship): Ship
+	---@field all fun(self: ShipCollection): Ship[]
 	---@field find fun(self: ShipCollection, predicate: ShipFilterPredicate): Ship | 'nil'
 	---@field filter fun(self: ShipCollection, predicate: ShipFilterPredicate): Ship[]
 	GLOBAL_SHIPS = modkit.MemGroup.Create("mg-ships-global");
@@ -22,7 +37,7 @@ if (H_DRIVER == nil) then
 	--- Returns all ships which are allied with the `caller`.
 	---
 	---@param caller Ship
-	---@param filter_predicate fun(ship: Ship, id: integer, collection: Ship[]): bool
+	---@param filter_predicate ShipFilterPredicate
 	---@return Ship[]
 	function GLOBAL_SHIPS:allied(caller, filter_predicate)
 		local allied_ships = {};
@@ -37,7 +52,7 @@ if (H_DRIVER == nil) then
 	--- Returns all ships which are not allied with the `caller`.
 	---
 	---@param caller Ship
-	---@param filter_predicate fun(ship: Ship, id: integer, collection: Ship[]): bool
+	---@param filter_predicate ShipFilterPredicate
 	---@return Ship[]
 	function GLOBAL_SHIPS:enemies(caller, filter_predicate)
 		local enemy_ships = {};
@@ -49,35 +64,48 @@ if (H_DRIVER == nil) then
 		return enemy_ships;
 	end
 
-	--- Returns all ships of the given type.
-	---
-	---@param ship_type string
-	---@return Ship[]
-	function GLOBAL_SHIPS:findType(ship_type)
-		local ships_of_type = {};
-		for _, ship in self:all() do
-			if (ship.type_group == ship_type) then
-				modkit.table.push(ships_of_type, ship);
-			end
-		end
-		return ships_of_type;
-	end
-
 	--- Registers the incoming sobgroup, player index, and ship id into a Ship table within the global registry.
 	-- The Ship is a rich representation of the actual ingame ship as a proper workable table.
-	function register(type_group, player_index, ship_id)
+	---@param type_group string
+	---@param player_index integer
+	---@param ship_id integer
+	---@return Ship
+	register = register or function (type_group, player_index, ship_id)
 		type_group = strlower(type_group); -- immediately make this lowercase
 		local caller = GLOBAL_SHIPS:get(ship_id);
 		if (caller ~= nil) then -- fast return if already exists
 			return caller;
 		end
-		-- Create a new Ship. The attributes and methods this ship has are a combination of any global attributes in
-		-- `custom_code/global_attribs.lua`, combined with the custom attributes and methods you defined for this _type_ of ship,
-		-- somewhere in `custom_code/<race>/<custom-ship>.lua`.
+
+		---@type Ship
 		caller = GLOBAL_SHIPS:set(
 			ship_id,
 			modkit.compose:instantiate(type_group, player_index, ship_id)
 		);
+
+		local l = {};
+		local f = function (...)
+			local line = "";
+			for k, v in arg do
+				if (k ~= "n") then
+					if (type(v) ~= "string") then
+						line = line .. tostring(v);
+					else
+						line = line .. v;
+					end
+				end
+			end
+			modkit.table.push(%l, line);
+		end
+		modkit.table.printTbl({ type_group = type_group, player_index = player_index, ship_id = ship_id }, "caller?", nil, f, 1);
+		local stateHnd = makeStateHandle();
+
+		local str_representation = type_group .. "," .. player_index .. "," .. ship_id;
+
+		stateHnd({
+			GLOBAL_SHIPS = modkit.table.push(stateHnd().GLOBAL_SHIPS or {}, str_representation);
+		});
+
 		-- ensure non-nil when calling these:
 		for i, v in {
 			"load",
@@ -99,14 +127,21 @@ if (H_DRIVER == nil) then
 
 	-- === load, create, update, destroy ===
 
-	function load()
+	load = load or function()
 		return NOOP;
 	end
 
 	GLOBAL_SHIPS.cache = GLOBAL_SHIPS.cache or {};
 	GLOBAL_SHIPS.cache.newly_created = GLOBAL_SHIPS.cache.newly_created or {};
 
-	function create(g, p, i)
+	--- The global `create` hook called by all ships correctly linked to modkit.
+	---
+	--- Called **once**, on spawn (construction, spawned by script, etc.)
+	---@param g string The sobgroup containing the callee's squad
+	---@param p integer The player index (id)
+	---@param i integer The ship's unique id
+	---@return DriverShip
+	create = create or function(g, p, i)
 		local caller = register(g, p, i);
 
 		caller:create(); -- run the caller's custom create hook
@@ -114,11 +149,24 @@ if (H_DRIVER == nil) then
 		return caller;
 	end
 
-	function update(g, p, i)
+	--- The global `update` hook called by all ships correctly linked to modkit.
+	---
+	--- Called **periodically**, with an interval defined in the `addCustomCode` call.
+	---@param g string The sobgroup containing the callee's squad
+	---@param p integer The player index (id)
+	---@param i integer The ship's unique id
+	---@return DriverShip
+	update = update or function(g, p, i)
 		local caller = GLOBAL_SHIPS:get(i);
-		if (caller == nil) then -- can happen when loading a save etc.
+		if (caller == nil or caller.own_group == nil) then -- can happen when loading a save etc.
+			---@type DriverShip
 			caller = create(g, p, i);
 		end
+
+		-- if (caller.own_group == nil) then
+		-- 	print("og: " .. (caller.own_group or "nil"));
+		-- 	modkit.table.printTbl(caller);
+		-- end
 
 		local engine_player_index = SobGroup_GetPlayerOwner(caller.own_group);
 		if (caller.player.id ~= engine_player_index and engine_player_index >= 0 and engine_player_index < 8) then
@@ -129,9 +177,6 @@ if (H_DRIVER == nil) then
 		caller:tick(caller:tick() + 1);
 
 		caller:update(); -- run the caller's custom update hook
-		if (caller.afterUpdate) then
-			caller:afterUpdate();
-		end
 
 		for k, v in caller.auto_exec do
 			v(caller, k);
@@ -145,18 +190,35 @@ if (H_DRIVER == nil) then
 		return caller;
 	end
 
-	function destroy(g, p, i)
+	--- The global `destroy` hook called by all ships correctly linked to modkit.
+	---
+	--- Called **once**, on despawn (death, retirement, etc.)
+	---@param g string The sobgroup containing the callee's squad
+	---@param p integer The player index (id)
+	---@param i integer The ship's unique id
+	---@return DriverShip
+	destroy = destroy or function(g, p, i)
+		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
 
 		caller:destroy(); -- run the caller's custom destroy hook
 
 		GLOBAL_SHIPS:delete(i);
-		-- nil return
+		
+		return caller;
 	end
 
 	-- === start, go, finish ===
 
-	function start(g, p, i)
+	--- The global `start` function, called by all custom ability ships correctly linked to modkit.
+	---
+	--- Called **once per ability activation**, at the start of the ability.
+	---@param g string The sobgroup containing the callee's squad
+	---@param p integer The player index (id)
+	---@param i integer The ship's unique id
+	---@return DriverShip
+	start = start or function(g, p, i)
+		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
 
 		caller:start();
@@ -164,7 +226,15 @@ if (H_DRIVER == nil) then
 		return caller;
 	end
 
-	function go(g, p, i)
+	--- The global `go` function, called by all custom ability ships correctly linked to modkit.
+	---
+	--- Called **periodically** while the custom ability remains active, with an interval set in the `customCommand` call.
+	---@param g string The sobgroup containing the callee's squad
+	---@param p integer The player index (id)
+	---@param i integer The ship's unique id
+	---@return DriverShip
+	go = go or function(g, p, i)
+		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
 
 		caller:go();
@@ -172,7 +242,15 @@ if (H_DRIVER == nil) then
 		return caller;
 	end
 
-	function finish(g, p, i)
+	--- The global `finish` function, called by all custom ability ships correctly linked with modkit.
+	---
+	--- Called **once per ability activation**, at the end of the ability.
+	---@param g string The sobgroup containing the callee's squad
+	---@param p integer The player index (id)
+	---@param i integer The ship's unique id
+	---@return DriverShip
+	finish = finish or function(g, p, i)
+		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
 
 		caller:finish();
