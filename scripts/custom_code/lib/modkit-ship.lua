@@ -11,7 +11,7 @@
 ---@field _despawned_at_volume string
 ---@field _reposition_volume string
 ---@field _default_vol string
----@field _auto_launch '0'|'1'
+---@field _auto_launch 0|1
 ---@field _visibility table<Player, Visibility>
 ---@field _capturable_mod CapturableModifier
 ---@field _ghosted bool
@@ -48,7 +48,7 @@ end
 
 --- Sets the HP of this ship to the given `hp` fraction (between 0 and 1)
 ---
----@param hp number
+---@param hp number?
 ---@return number
 function modkit_ship:HP(hp)
 	if (hp) then
@@ -70,7 +70,7 @@ end
 ---
 --- Values exceeding `1` may be passed.
 ---
----@param speed number
+---@param speed? number
 ---@return number
 function modkit_ship:speed(speed)
 	if (speed) then
@@ -90,7 +90,7 @@ end
 --- Returns the ship's current position (or the center position of the ship's batch squad).
 --- If `pos` is supplied, it will set the position of the ship instantly.
 ---
----@param pos Position
+---@param pos? Position
 ---@return Position
 function modkit_ship:position(pos)
 	if (pos) then
@@ -177,7 +177,7 @@ end
 --- Returns whether or not this ship host's the named subsystem.
 ---
 ---@param subs_name string
----@return '0'|'1'
+---@return 0|1
 function modkit_ship:hasSubsystem(subs_name)
 	return SobGroup_HasSubsystem(self.own_group, subs_name);
 end
@@ -268,8 +268,8 @@ end
 
 --- Returns the cloak state of this ship, optionally setting it.
 ---
----@param set '0'|'1'
----@return '0'|'1'
+---@param set? 0|1
+---@return bool
 function modkit_ship:cloak(set)
 	local current_status = self:isCloaked();
 	set = set or mod(current_status + 1, 2);
@@ -281,9 +281,9 @@ function modkit_ship:cloak(set)
 end
 
 --- Returns whether or not this ship is cloaked
----@return '0'|'1'
+---@return bool
 function modkit_ship:isCloaked()
-	return SobGroup_IsCloaked(self.own_group);
+	return SobGroup_IsCloaked(self.own_group) == 1;
 end
 
 --- Causes this ship to begin capturing `targets`, which can be a single ship or a table of ships.
@@ -321,12 +321,13 @@ end
 --- - `Ship`: a `Ship`
 --- - `Position`: a `Position`
 ---
----@param where string | Ship | Position
+---@param where string | Ship | Position | Vec3
 function modkit_ship:move(where)
 	if (type(where) == "string") then -- a volume
 		SobGroup_Move(self.player.id, self.own_group, where);
 	else -- a position
 		if (where.own_group) then
+			---@cast where Ship
 			where = where:position();
 		end
 		Volume_AddSphere(self._default_vol, where, 1);
@@ -379,7 +380,7 @@ end
 
 --- Gets or optionally sets the ship's auto-launch behavior. `1` for auto-launch, `0` for stay-docked manual launching.
 ---
----@param auto_launch AutoLaunchStatus
+---@param auto_launch? AutoLaunchStatus
 ---@return AutoLaunchStatus
 function modkit_ship:autoLaunch(auto_launch)
 	if (auto_launch) then
@@ -391,7 +392,7 @@ end
 
 --- Gets and optionally sets the ship's [Rules Of Engagement](https://github.com/HWRM/KarosGraveyard/wiki/Variable;-ROE).
 ---
----@param new_ROE ROE
+---@param new_ROE? ROE
 ---@return ROE
 function modkit_ship:ROE(new_ROE)
 	if (new_ROE) then
@@ -402,7 +403,7 @@ end
 
 --- Gets and optionally sets the ship's [Stance](https://github.com/HWRM/KarosGraveyard/wiki/Variable;-Stance).
 ---
----@param new_stance Stance
+---@param new_stance? Stance
 ---@return Stance
 function modkit_ship:stance(new_stance)
 	if (new_stance) then
@@ -413,9 +414,10 @@ end
 
 --- Causes this ship to be 'ghosted', which is pretty much akin to no-clip (no collisions will affect this ship).
 ---
----@param enabled '0'|'1'
+---@param enabled? 0|1
 ---@return bool
 function modkit_ship:ghost(enabled)
+	enabled = enabled or 1;
 	if (enabled == 0) then
 		self._ghosted = nil;
 	else
@@ -427,7 +429,7 @@ end
 
 --- Launches `docked` from this ship, if `docked` is currently docked with this ship.
 ---
----@param docked? Ship
+---@param docked Ship
 ---@return nil
 function modkit_ship:launch(docked)
 	return SobGroup_Launch(docked.own_group, self.own_group);
@@ -612,7 +614,7 @@ end
 -- === State queries ===
 
 ---
----@param invulnerable '0'|'1'
+---@param invulnerable bool
 ---@return bool
 function modkit_ship:invulnerable(invulnerable)
 	if (invulnerable) then
@@ -637,8 +639,8 @@ function modkit_ship:stunned(stunned)
 end
 
 --- Returns whether or not this ship is docked with anything. Optionally, checks if this ship is docked with a specific ship.
----@param with Ship
----@return '1'|'nil'
+---@param with? Ship
+---@return bool
 function modkit_ship:docked(with)
 	if (with) then
 		return SobGroup_IsDockedSobGroup(self.own_group, with.own_group) == 1;
@@ -648,7 +650,7 @@ end
 
 --- Returns `1` if this ship is attacking anything, else `nil`. If `target` is provided, check instead if
 -- this ship is attacking that target (instead of anything).
----@param target Ship | 'nil'
+---@param target? Ship | 'nil'
 ---@return bool
 function modkit_ship:attacking(target)
 	if (target) then
@@ -694,6 +696,7 @@ function modkit_ship:alliedWith(other)
 	if (other.HP) then -- caller is a ship
 		return self.player:alliedWith(other.player);
 	else
+		---@cast other Player
 		return self.player:alliedWith(other);
 	end
 end
@@ -703,7 +706,7 @@ end
 ---
 --- **NOTE:** 'Under attack' just means some ship has an attack command agaisnt this ship, not necessarily that it's taking damage.
 ---
----@param attacker Ship
+---@param attacker? Ship
 ---@return bool
 function modkit_ship:underAttack(attacker)
 	if (attacker) then
@@ -714,7 +717,7 @@ end
 
 --- Returns the command targets of the
 ---@param command integer
----@param source table
+---@param source? table
 ---@return Ship[]
 function modkit_ship:commandTargets(command, source)
 	local targets_group = SobGroup_Fresh("targets-group-" .. self.id .. "-" .. command);
@@ -761,8 +764,8 @@ end
 --- Returns whether or not this ship can perform the given ability (an `AB_` value).
 ---
 ---@param ability integer
----@param enable '0'|'1'|'nil'
----@return '0'|'1'
+---@param enable? 0|1
+---@return 0|1
 function modkit_ship:canDoAbility(ability, enable)
 	enable = enable or SobGroup_CanDoAbility(self.own_group, ability);
 	SobGroup_AbilityActivate(self.own_group, ability, enable);
@@ -770,7 +773,7 @@ function modkit_ship:canDoAbility(ability, enable)
 end
 
 ---comment
----@param enable '0'|'1'|'nil'
+---@param enable? 0|1
 function modkit_ship:canHyperspace(enable)
 	return self:canDoAbility(AB_Hyperspace, enable);
 end
@@ -786,19 +789,19 @@ end
 --- Returns `1` is this ship is performing `ability` (one of the `AB_` global ability codes).
 ---
 ---@param ability integer
----@return '0'|'1'
+---@return bool
 function modkit_ship:isDoingAbility(ability)
-	return SobGroup_IsDoingAbility(self.own_group, ability);
+	return SobGroup_IsDoingAbility(self.own_group, ability) == 1;
 end
 
 --- Returns `1` if this ship is performing any ability in `abilities`, else `0`.
 ---
 ---@param abilities table
----@return '0'|'1'
+---@return bool
 function modkit_ship:isDoingAnyAbilities(abilities)
 	return modkit.table.any(abilities, function (ability)
 		return %self:isDoingAbility(ability) == 1;
-	end) or 0;
+	end);
 end
 
 function modkit_ship:isDocking()

@@ -77,7 +77,7 @@ if (H_CAMPAIGN == nil or (modkit ~= nil and modkit.campaign == nil)) then
 		---@field callback RuleFn
 
 		---@class GLOBAL_RULES : MemGroupInst
-		---@field find fun(self: GLOBAL_RULES, predicate: fun(rule: Rule): boolean): Rule|nil
+		---@field find fun(self: GLOBAL_RULES, predicate: fun(rule: Rule): bool): Rule|nil
 		---@field _entities Rule[]
 		---@field __runner function|nil
 		---@field __listeners Listener[]
@@ -176,6 +176,7 @@ if (H_CAMPAIGN == nil or (modkit ~= nil and modkit.campaign == nil)) then
 				-- set the initial value (important for chaining)
 				self.core_state._value = initial_value;
 				-- and we then invoke it every `self.interval` ticks
+				modkit.table.printTbl(self, "hi");
 				Rule_AddInterval(self.api_name, self.interval);
 				self.status = "running";
 
@@ -249,14 +250,14 @@ if (H_CAMPAIGN == nil or (modkit ~= nil and modkit.campaign == nil)) then
 	end
 
 	---@param rule_fn RuleFn
-	---@param interval? integer
+	---@param options? { name?: string, interval?: number }
 	---@param state? any[]
-	---@param name? string
 	---@return Rule
-	function rules:make(rule_fn, interval, state, name)
-		name = name or ("__rule__" .. tostring(GLOBAL_RULES.__tick) .. "_" .. tostring(modkit.table.length(GLOBAL_RULES._entities)));
-
-		interval = interval or self.min_poll_interval;
+	function rules:make(rule_fn, options, state)
+		options = options or {};
+		name = options.name or ("__rule__" .. tostring(GLOBAL_RULES.__tick) .. "_" .. tostring(modkit.table.length(GLOBAL_RULES._entities)));
+		interval = options.interval or self.min_poll_interval;
+	
 		local already_exists = GLOBAL_RULES:get(name);
 		if (already_exists) then
 			print("overriding already existing rule: " .. name);

@@ -1,6 +1,6 @@
 ---@class ResShipAttribs
 ---@field next_to_build_index integer
----@field spinning '0'|'1'
+---@field spinning 0|1
 ---@field spin_start_event_id 'nil'|integer
 
 --- Proto for res ships for both tai and kus (only for res ship 0, which drives the others).

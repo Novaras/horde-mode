@@ -37,7 +37,7 @@ modkit_base = {
 
 --- Gets and/or sets the tick of this ship (how many `update` calls have been performed since creation).
 ---
----@param set integer
+---@param set? integer
 ---@return integer
 function modkit_base:tick(set)
 	if (set and type(set) == "number") then

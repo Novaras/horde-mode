@@ -4,7 +4,7 @@
 -- Flow begins at `go()`.
 
 ---@class GravwellAttribs
----@field active '0'|'1'
+---@field active 0|1
 ---@field tumble_index integer
 ---@field all_unique_trapped Ship[]
 ---@field previous_tick_trapped Ship[]
@@ -80,7 +80,7 @@ function gravwell_proto:calculateNewTrappables()
 end
 
 ---@param ships Ship[]
----@param trapped '0'|'1'
+---@param trapped 0|1
 function gravwell_proto:setTrapped(ships, trapped)
 	for _, ship in ships do
 		ship:stunned(trapped);
@@ -109,7 +109,7 @@ end
 ---
 --- `1` -> effects applied, `0` -> effects cleared
 ---
----@param apply '0'|'1'
+---@param apply 0|1
 function gravwell_proto:ownEffects(apply)
 	local ab_enabled = max(apply + 1, 2);
 	self:canHyperspace(ab_enabled);

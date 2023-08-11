@@ -158,7 +158,7 @@ end
 
 --- Syncs the ROE of all alive drones to the frigate's ROE
 ---
----@param ROE ROE
+---@param ROE? ROE
 function drones_proto:syncDroneROEs(ROE)
 	for _, drone in self.live_drones do
 		drone:ROE(ROE or self:ROE());
