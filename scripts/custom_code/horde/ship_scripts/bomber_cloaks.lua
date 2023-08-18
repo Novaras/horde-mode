@@ -1,7 +1,5 @@
 ---@class AttackBomberProto : Ship
-atk_bomber_proto = {
-	previous_hp = 1
-};
+atk_bomber_proto = {};
 
 function atk_bomber_proto:update()
 	if (self.player:hasResearch("Bomber_Cloaking")) then
