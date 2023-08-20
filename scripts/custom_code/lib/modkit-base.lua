@@ -27,6 +27,7 @@ modkit_base = {
 	attribs = function (g, p, s)
 		return {
 			type_group = g,
+			ship_type = g,
 			own_group = SobGroup_Clone(g, g .. "-" .. s),
 			player = GLOBAL_PLAYERS:get(p),
 			_tick = 0,
