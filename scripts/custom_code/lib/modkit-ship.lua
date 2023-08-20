@@ -48,7 +48,7 @@ end
 
 --- Sets the HP of this ship to the given `hp` fraction (between 0 and 1)
 ---
----@param hp number?
+---@param hp? number
 ---@return number
 function modkit_ship:HP(hp)
 	if (hp) then
@@ -124,10 +124,11 @@ end
 
 --- Sets the damage multiplier for this ship.
 ---
---- The multiplier is always relative to 1 (its reset every time you call this fn), unless `relative` is non-nil.
+--- The multiplier is always relative to 1 (its reset every time you call this fn), unless `relative` is non-nil,
+--- meaning the function is being called _relative_ to its last value (instead of 1).
 ---
 ---@param mult number
----@param relative bool
+---@param relative? bool
 ---@return number # the current dmg mult after being set
 function modkit_ship:damageMult(mult, relative)
 	if (mult) then
@@ -169,49 +170,72 @@ end
 ---@return number
 function modkit_ship:subsHP(subs_name, HP)
 	if (HP) then
+		HP = max(0, min(1, HP));
 		SobGroup_SetHardPointHealth(self.own_group, subs_name, HP);
 	end
 	return SobGroup_GetHardPointHealth(self.own_group, subs_name);
 end
 
---- Returns whether or not this ship host's the named subsystem.
+--- Returns whether or not this ship hosts the named subsystem.
 ---
 ---@param subs_name string
----@return 0|1
+---@return bool
 function modkit_ship:hasSubsystem(subs_name)
-	return SobGroup_HasSubsystem(self.own_group, subs_name);
+	return SobGroup_HasSubsystem(self.own_group, subs_name) == 1;
 end
 
---- Returns the distance between this ship and `other`, which can be:
---- - one other `Ship`
---- - a `Ship[]`
---- - a `Position`
+--- Returns whether or not this ship hosts a research module of any kind.
+---
+---@return bool
+function modkit_ship:hasResearchModule()
+	for _, name in {
+		'hgn_c_module_research',
+		'hgn_c_module_researchadvanced',
+		'hgn_ms_module_research',
+		'hgn_ms_module_researchadvanced',
+		'vgr_c_module_research',
+		'vgr_ms_module_research',
+		'hw1_researchmodule'
+	} do
+		if (self:hasSubsystem(name)) then
+			return 1;
+		end
+
+		if (name == 'hw1_researchmodule') then
+			for i = 1, 5 do
+				if (self:hasSubsystem(name .. i)) then
+					return 1;
+				end
+			end
+		end
+	end
+	return nil;
+end
+
+--- Returns the distance between this ship and the given other ship, or the average position if given multiple others.
 ---
 ---@param other Ship | Ship[] | Position
 ---@return number
 function modkit_ship:distanceTo(other)
-	if (type(other.own_group) == "string") then -- assume ship
+	local a = self:position();
+
+	if (other.own_group) then -- ship
 		return SobGroup_GetDistanceToSobGroup(self.own_group, other.own_group);
-	else
-		local a = self:position();
-		local b = other;
-		local first;
-		for _, val in b do
-			first = val;
-			break;
-		end
-		if (type(first) == "table") then
-			b = modkit.ships():avgPosition(other);
-		end
-		if (b[1] == nil) then
-			return 0;
-		end
-		return sqrt(
-			(b[1] - a[1]) ^ 2 +
-			(b[2] - a[2]) ^ 2 +
-			(b[3] - a[3]) ^ 2
-		);
 	end
+
+	---@type Position|Ship
+	local b = a;
+	if (other[1] and type(other[1]) == "number") then
+		b = other;
+	else
+		b = SobGroup_GetPosition(SobGroup_FromShips(other));
+	end
+
+	return sqrt(
+		(b[1] - a[1]) ^ 2 +
+		(b[2] - a[2]) ^ 2 +
+		(b[3] - a[3]) ^ 2
+	);
 end
 
 --- Returns the squad (batch) size of the ship, which may be a squadron.
@@ -268,7 +292,7 @@ end
 
 --- Returns the cloak state of this ship, optionally setting it.
 ---
----@param set? 0|1
+---@param set? 0|1 -- if `nil`, the cloak is toggled, if 0, its turned off, if 1, turned on
 ---@return bool
 function modkit_ship:cloak(set)
 	local current_status = self:isCloaked();
@@ -343,7 +367,7 @@ function modkit_ship:guard(target)
 	if (target.own_group) then
 		self._guard_group = target.own_group;
 	else -- collection of ships
-		self._guard_group = SobGroup_FromShips(target, self.own_group .. "_guard_group");
+		self._guard_group = SobGroup_FromShips({ target }, self.own_group .. "_guard_group");
 	end
 	return SobGroup_GuardSobGroup(self.own_group, self._guard_group);
 end
@@ -406,7 +430,7 @@ end
 ---@param new_stance? Stance
 ---@return Stance
 function modkit_ship:stance(new_stance)
-	if (new_stance) then
+	if (new_stance ~= nil) then
 		SobGroup_SetStance(self.own_group, new_stance);
 	end
 	return SobGroup_GetStance(self.own_group);
@@ -429,31 +453,35 @@ end
 
 --- Launches `docked` from this ship, if `docked` is currently docked with this ship.
 ---
----@param docked Ship
+---@param docked? Ship
 ---@return nil
 function modkit_ship:launch(docked)
-	return SobGroup_Launch(docked.own_group, self.own_group);
+	local group_to_launch = self.player:shipsGroup();
+	if (docked) then
+		group_to_launch = docked.own_group;
+	end
+	return SobGroup_Launch(group_to_launch, self.own_group);
 end
 
 --- Returns the 3-character race string of the ship.
 --- **Note: This is the host race of the _ship type_, as opposed to the player's race.**
 ---
----@return string
-function modkit_ship:race()
+---@return RacePrefix
+function modkit_ship:racePrefix()
 	return strsub(self.ship_type, 0, 3);
+end
+
+--- Returns the actual race name of the ship (see `races.lua`)
+---
+---@return RaceName
+function modkit_ship:raceName()
+	return modkit.races:find(self:racePrefix()).name;
 end
 
 -- === Attack family queries ===
 
 function modkit_ship:attackFamily()
-	if (attackFamily == nil) then
-		dofilepath("data:scripts/familylist.lua");
-	end
-	for i, family in attackFamily do
-		if (SobGroup_AreAnyFromTheseAttackFamilies(self.own_group, family.name) == 1) then
-			return strlower(family.name);
-		end
-	end
+	return SobGroup_GetFirstAttackFamily(self.own_group);
 end
 
 ---@return bool
@@ -614,7 +642,7 @@ end
 -- === State queries ===
 
 ---
----@param invulnerable bool
+---@param invulnerable? 0|1
 ---@return bool
 function modkit_ship:invulnerable(invulnerable)
 	if (invulnerable) then
@@ -625,7 +653,7 @@ function modkit_ship:invulnerable(invulnerable)
 		end
 		SobGroup_SetInvulnerability(self.own_group, self._invulnerable or 0);
 	end
-	return self._invulnerable;
+	return self._invulnerable == 1;
 end
 
 --- Get or set the stunned status of the ship.
@@ -650,7 +678,7 @@ end
 
 --- Returns `1` if this ship is attacking anything, else `nil`. If `target` is provided, check instead if
 -- this ship is attacking that target (instead of anything).
----@param target? Ship | 'nil'
+---@param target? Ship
 ---@return bool
 function modkit_ship:attacking(target)
 	if (target) then
@@ -663,7 +691,7 @@ function modkit_ship:attacking(target)
 end
 
 --- Returns whether or not this ship is currently capturing anything, or just the specified `target` if supplied.
----@param target Ship | 'nil'
+---@param target? Ship
 ---@return bool
 function modkit_ship:capturing(target)
 	if (target) then
@@ -677,14 +705,17 @@ end
 --- Returns all guard targets for this ship (or nil). If `target` is provided, returns whether or not this ship is guarding the `target`.
 ---
 ---@param target? Ship
----@return 'Ship[]'|bool
+---@return bool
 function modkit_ship:guarding(target)
 	if (target) then
 		local targets_group = SobGroup_Fresh("targets-group-" .. self.id .. "-" .. COMMAND_Guard);
 		SobGroup_GetCommandTargets(targets_group, self.own_group, COMMAND_Guard);
 		return SobGroup_GroupInGroup(target.own_group, targets_group) == 1;
 	else
-		return self:currentCommand() == COMMAND_Guard;
+		return modkit.table.any(GLOBAL_PLAYERS:alive(), function (player)
+			---@cast player Player
+			return SobGroup_IsGuardingSobGroup(%self.own_group, player:shipsGroup()) == 1;
+		end);
 	end
 end
 
@@ -703,8 +734,6 @@ end
 
 --- Returns `1` if this ship is under attack from any source, else `nil`. If `attacker` is provided, check instead if
 --- this ship is under attack by that attacker (instead of anything).
----
---- **NOTE:** 'Under attack' just means some ship has an attack command agaisnt this ship, not necessarily that it's taking damage.
 ---
 ---@param attacker? Ship
 ---@return bool
@@ -732,15 +761,17 @@ function modkit_ship:commandTargets(command, source)
 end
 
 function modkit_ship:beingCaptured()
-	return SobGroup_AnyBeingCaptured(self.own_group);
+	return SobGroup_AnyBeingCaptured(self.own_group) == 1;
 end
 
+---@return bool
 function modkit_ship:allInRealSpace()
-	return SobGroup_AreAllInRealSpace(self.own_group);
+	return SobGroup_AreAllInRealSpace(self.own_group) == 1;
 end
 
+---@return bool
 function modkit_ship:allInHyperSpace()
-	return SobGroup_AreAllInHyperspace(self.own_group);
+	return SobGroup_AreAllInHyperspace(self.own_group) == 1;
 end
 
 -- === Flags (need better name) ===
@@ -765,14 +796,15 @@ end
 ---
 ---@param ability integer
 ---@param enable? 0|1
----@return 0|1
+---@return '0'|'1'
 function modkit_ship:canDoAbility(ability, enable)
 	enable = enable or SobGroup_CanDoAbility(self.own_group, ability);
 	SobGroup_AbilityActivate(self.own_group, ability, enable);
 	return SobGroup_CanDoAbility(self.own_group, ability);
 end
 
----comment
+--- Gets and optionally sets whether or not this ship can hyperspace.
+---
 ---@param enable? 0|1
 function modkit_ship:canHyperspace(enable)
 	return self:canDoAbility(AB_Hyperspace, enable);
@@ -816,9 +848,41 @@ end
 ---
 ---@return bool
 function modkit_ship:isBeingCaptured()
-	local temp = SobGroup_Fresh();
-	SobGroup_GetSobGroupBeingCapturedGroup(self.own_group, temp);
+	local temp = SobGroup_GetSobGroupBeingCapturedGroup(self.own_group, DEFAULT_SOBGROUP);
 	return SobGroup_Count(temp) > 0;
+end
+
+-- === Selection stuff ===
+
+--- Gets and optionally sets the 'selected' state of this ship. This is a real UI selection, not to be confused with a selection from `Section_` functions.
+---
+--- A further parameter, `add_to_current`, indicates whether or not to add this ship to a possible current selection or to set it as the only selected ship when setting.
+---
+---@param selected? 0|1
+---@param add_to_current? bool
+---@return bool
+function modkit_ship:selected(selected, add_to_current)
+	if (selected == 1) then
+		local to_select_group = SobGroup_Fresh();
+		SobGroup_SobGroupAdd(to_select_group, self.own_group);
+		if (add_to_current) then
+			local current = SobGroup_FromShips(GLOBAL_SHIPS:selected());
+			modkit.table.printTbl(modkit.table.map(GLOBAL_SHIPS:selected(), function (ship)
+				return { own_group = ship.own_group, selected = ship:selected() };
+			end), "selected ships");
+			print("current selected group count: " .. tostring(SobGroup_Count(current)));
+			SobGroup_SobGroupAdd(to_select_group, current);
+		end
+		SobGroup_SelectSobGroup(to_select_group);
+	elseif (selected == 0) then
+		local current = SobGroup_FromShips(GLOBAL_SHIPS:selected());
+		local after = SobGroup_Fresh();
+		SobGroup_FillSubstract(after, current, self.own_group); -- save the selection sans this ship
+		SobGroup_DeSelectAll();
+		SobGroup_SelectSobGroup(after); -- now re-select (so we only end up deselecting this ship)
+	end
+
+	return SobGroup_Selected(self.own_group) == 1;
 end
 
 -- === Command stuff ===
@@ -942,6 +1006,11 @@ end
 
 -- ==== printing (debugging) ====
 
+--- Calls `modkit.table.printTbl` for this 'Ship' (which is just a table).
+---
+--- By default, only outputs certain key details; for a full printing of this Ship table, `verbose` should be set.
+---
+---@param verbose? bool
 function modkit_ship:print(verbose)
 	if (verbose) then
 		modkit.table.printTbl(self, "ship: " .. self.id);
