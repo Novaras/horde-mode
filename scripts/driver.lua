@@ -24,19 +24,40 @@ if (H_DRIVER == nil) then
 	end
 
 	---@class ShipCollection : SheduledFilters, MemGroupInst
+	---@diagnostic disable-next-line: duplicate-doc-field
 	---@field _entities Ship[]
+	---@diagnostic disable-next-line: duplicate-doc-field
 	---@field get fun(self: ShipCollection, entity_id: number): Ship
+	---@diagnostic disable-next-line: duplicate-doc-field
 	---@field set fun(self: ShipCollection, entity_id: number, ship: Ship): Ship
+	---@diagnostic disable-next-line: duplicate-doc-field
 	---@field all fun(self: ShipCollection): Ship[]
+	---@diagnostic disable-next-line: duplicate-doc-field
 	---@field find fun(self: ShipCollection, predicate: ShipFilterPredicate): Ship | 'nil'
+	---@diagnostic disable-next-line: duplicate-doc-field
 	---@field filter fun(self: ShipCollection, predicate: ShipFilterPredicate): Ship[]
 	GLOBAL_SHIPS = modkit.MemGroup.Create("mg-ships-global");
 
 	initPlayers(); -- modkit/player.lua
 
+	--- Returns selected ships.
+	---
+	---@return Ship[]
+	function GLOBAL_SHIPS:selected()
+		local selected = {};
+		for _, ship in GLOBAL_SHIPS:all() do
+			---@cast ship Ship
+			if (ship:selected()) then
+				modkit.table.push(selected, ship);
+			end
+		end
+
+		return selected;
+	end
+
 	--- Returns all ships which are allied with the `caller`.
 	---
-	---@param caller Ship
+	---@param caller Ship|Player
 	---@param filter_predicate ShipFilterPredicate
 	---@return Ship[]
 	function GLOBAL_SHIPS:allied(caller, filter_predicate)
@@ -159,9 +180,9 @@ if (H_DRIVER == nil) then
 	update = update or function(g, p, i)
 		local caller = GLOBAL_SHIPS:get(i);
 		if (caller == nil or caller.own_group == nil) then -- can happen when loading a save etc.
-			---@type DriverShip
 			caller = create(g, p, i);
 		end
+		---@cast caller DriverShip
 
 		-- if (caller.own_group == nil) then
 		-- 	print("og: " .. (caller.own_group or "nil"));
@@ -198,8 +219,8 @@ if (H_DRIVER == nil) then
 	---@param i integer The ship's unique id
 	---@return DriverShip
 	destroy = destroy or function(g, p, i)
-		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
+		---@cast caller DriverShip
 
 		caller:destroy(); -- run the caller's custom destroy hook
 
@@ -218,8 +239,8 @@ if (H_DRIVER == nil) then
 	---@param i integer The ship's unique id
 	---@return DriverShip
 	start = start or function(g, p, i)
-		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
+		---@cast caller DriverShip
 
 		caller:start();
 
@@ -234,8 +255,8 @@ if (H_DRIVER == nil) then
 	---@param i integer The ship's unique id
 	---@return DriverShip
 	go = go or function(g, p, i)
-		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
+		---@cast caller DriverShip
 
 		caller:go();
 
@@ -250,8 +271,8 @@ if (H_DRIVER == nil) then
 	---@param i integer The ship's unique id
 	---@return DriverShip
 	finish = finish or function(g, p, i)
-		---@type DriverShip
 		local caller = GLOBAL_SHIPS:get(i);
+		---@cast caller DriverShip
 
 		caller:finish();
 
