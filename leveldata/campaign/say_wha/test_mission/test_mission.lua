@@ -1,5 +1,9 @@
 if (modkit == nil) then dofilepath("data:scripts/modkit.lua"); end
 
+loadModkit();
+-- dofilepath("data:leveldata/multiplayer/lib/modkit-hoist-memgroups.lua");
+modkitBindKeys();
+
 rules = modkit.campaign.rules;
 map = modkit.campaign.map;
 
@@ -12,32 +16,36 @@ rules:init("data:leveldata/campaign/say_wha/test_mission/test_mission.level");
 -- here we set up the phase rules
 for index, phase in PHASE_CONFIGS do
 	local wave_manager_rule = rules:make(
-		"wave_manager_" .. index,
 		makeWaveManagerRule(),
-		1
+		{
+			name = "wave_manager_" .. index,
+			interval = 1
+		}
 	);
 	phase_rules[index] = rules:make(
-		"phase_" .. index,
 		makePhaseRule(index, phase, wave_manager_rule),
-		1
+		{
+			name = "phase_" .. index,
+			interval = 1
+		}
 	);
 end
 
-local grace_period_time = 90;
 local grace_period_rule = rules:make(
-	"grace_period",
-	makeGracePeriodRule(grace_period_time)
+	makeGracePeriodRule(90),
+	{ name = "grace_period" }
 );
 rules:begin(grace_period_rule);
-UI_SetTimerOffset("NewTaskbar", "GameTimer", -grace_period_time);
 
 rules:on(
 	grace_period_rule.id,
 	function ()
 		local phase_manager_rule = rules:make(
-			"phase_manager",
 			makePhaseManagerRule(),
-			1
+			{
+				name = "phase_manager",
+				interval = 1
+			}
 		);
 		rules:begin(phase_manager_rule);
 		rules:on(
@@ -50,14 +58,16 @@ rules:on(
 	end
 );
 
-local game_end_rule = rules:make("game_end_rule", function (state, rules)
-	if (SobGroup_Count("Player_Ships" .. 0) == 0) then
+local game_end_rule = rules:make(function (state, rules)
+	if (SobGroup_Count("Player_Ships" .. 0) == 0 or PLAYER_BUILDER:alive() == nil) then
 		setMissionComplete(0);
 	elseif (PHASES_DONE) then
 		setMissionComplete(1);
 	end
-end);
+end, { name = "game_end_rule", interval = 1 });
 rules:begin(game_end_rule);
+
+PLAYER_BUILDER = GLOBAL_MISSION_SHIPS:get('player_initbuilder');
 
 -- we can use p2 as an ally to control big swarms (poorly microed mass units)
 SetAlliance(0, 2);
@@ -69,6 +79,7 @@ Player_RestrictBuildOption(0, "Hgn_SY_Production_CapShip");
 -- Player_RestrictBuildOption(0, "Hgn_C_Production_Frigate");
 
 Player_RestrictBuildOption(0, "hgn_shipyard");
+Player_RestrictBuildOption(0, "vgr_shipyard");
 
 Player_RestrictResearchOption(0, "MothershipHealthUpgrade1");
 Player_RestrictResearchOption(0, "MothershipMAXSPEEDUpgrade1");
@@ -84,7 +95,7 @@ Player_RestrictResearchOption(0, "SensDisProbe"); -- they called it 'sensdisprob
 Player_RestrictBuildOption(0, "hgn_ms_module_cloakgenerator");
 Player_RestrictBuildOption(0, "hgn_c_module_cloakgenerator");
 
-SobGroup_CreateSubSystem(GLOBAL_MISSION_SHIPS:get('player_initbuilder').own_group, "hgn_ms_module_research");
+SobGroup_CreateSubSystem(PLAYER_BUILDER.own_group, "hgn_ms_module_research");
 
 Player_GrantAllResearch(1);
 

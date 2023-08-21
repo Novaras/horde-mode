@@ -5,8 +5,8 @@ if (horde_manager == nil) then
 
 	---@class HordeManagerProto : Ship
 	---@field human_player Player
-	---@field rewards { a: _Rew, b: _Rew }
-	---@field doing_ui '0' | '1'
+	---@field rewards? { a: _Rew, b: _Rew }
+	---@field doing_ui 0|1
 	---@field guard_types string[]
 	horde_manager = {
 		rewards = nil,
@@ -19,7 +19,8 @@ if (horde_manager == nil) then
 			"tai_gravwellgenerator",
 			"kus_cloakgenerator",
 			"tai_cloakgenerator"
-		}
+		},
+		actions_by_type = {}
 	};
 	doscanpath("data:scripts/custom_code/horde/lib/", "*.lua");
 
@@ -27,11 +28,13 @@ if (horde_manager == nil) then
 		-- print("manager tick " .. self:tick());
 
 		if (self.init == nil) then
-			self.init = 1;
 			self.doing_ui = 0;
 			self.human_player = GLOBAL_PLAYERS:get(0);
-
+			
+			dofilepath("./type_actions.lua");
+			
 			print("GO");
+			self.init = 1;
 			-- Player_GrantResearchOption(0, "pulsar_emp");
 		end
 

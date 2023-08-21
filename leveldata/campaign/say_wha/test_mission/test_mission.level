@@ -10,7 +10,7 @@ player[0] = {
   id = 0,
   name = "StartPos0",
   resources = 5000,
-  raceName = "Hiigaran",
+  raceName = "Horde",
   startPos = 1,
 }
 
@@ -62,7 +62,7 @@ local math = modkit.math;
 local carrier_pos = { 0, 1000, 0 };
 MODKIT_MISSION_SHIPS = {
   player_initbuilder = {
-    type = "hgn_horde_shipyard",
+    type = "horde_shipyard",
     player = 0,
     position = carrier_pos,
     rotation = { 0, random(0, 100), 0 },
@@ -87,12 +87,20 @@ for i = 1, 6 do
   for axis, value in carrier_pos do
     pos[axis] = value + (math.pow(-1, random(1, 2)) * random(500, 700));
   end
+
+  local type = "hgn_resourcecollector";
+  if (random() < 0.5) then
+    type = "vgr_resourcecollector";
+  end
+
   MODKIT_MISSION_SHIPS["player_collector_" .. i] = {
-    type = "hgn_resourcecollector",
+    type = type,
     player = 0,
     position = pos
   };
 end
+
+print("ten sq: " .. 10 ^ 2);
 
 -- for i = 1, 75 do
 --   local pos = {};

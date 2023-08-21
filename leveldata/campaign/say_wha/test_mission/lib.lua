@@ -3,8 +3,8 @@ if (modkit == nil) then dofilepath("data:scripts/modkit.lua"); end
 ---@class WaveConfig
 ---@field value integer
 ---@field enemy_types table<integer, string | { type: string, min_count: integer }>
----@field duration integer
----@field add_reactive bool
+---@field duration? integer
+---@field add_reactive? bool
 
 ---@class Wave
 ---@field init bool
@@ -27,12 +27,12 @@ wave_rules = {};
 ---@return RuleFn
 function makeWaveRule(wave_index, wave)
 	---@type RuleFn
-	return function (state)
-		local state = makeStateHandle();
-		---@type Wave
-		local running_wave = state().running_wave;
+	return function (res, rej, state)
+		local global_state = makeStateHandle();
+		---@type Wave|-1
+		local running_wave = global_state().running_wave;
 		if (running_wave == -1) then
-			state({
+			global_state({
 				running_wave = {
 					index = %wave_index,
 					config = %wave,
@@ -42,10 +42,10 @@ function makeWaveRule(wave_index, wave)
 			Subtitle_Message("hello from wave " .. %wave_index, 3);
 		else
 			if (running_wave.finished) then
-				state({
+				global_state({
 					running_wave = -1
 				});
-				return 1;
+				res(1);
 			end
 		end
 	end
@@ -59,7 +59,7 @@ end
 ---@return RuleFn
 function makePhaseRule(phase_index, phase, wave_manager_rule)
 	---@type RuleFn
-	return function (state, rules)
+	return function (res, rej, state, rules)
 		if (state._tick == 1) then
 			Subtitle_Message("hello from phase " .. %phase_index, 3);
 			modkit.table.printTbl(state, "rule state");
@@ -67,11 +67,15 @@ function makePhaseRule(phase_index, phase, wave_manager_rule)
 			wave_rules = {};
 			for index, wave in %phase.waves do
 				wave_rules[index] = rules:make(
-					"wave_" .. index .. "_" .. %phase_index,
 					makeWaveRule(index, wave),
-					1
+					{
+						name = "wave_" .. index .. "_" .. %phase_index,
+						interval = 1
+					}
 				);
 			end
+
+			modkit.table.printTbl(wave_rules, "wave_rules (GLOBAL)");
 
 			rules:begin(%wave_manager_rule);
 			rules:on(
@@ -82,20 +86,27 @@ function makePhaseRule(phase_index, phase, wave_manager_rule)
 			);
 		end
 
-		if (%wave_manager_rule.status == "returned") then
-			return 1;
+		if (%wave_manager_rule.status == "resolved") then
+			res(1);
 		end
 	end
 end
 
-
+---@return RuleFn
 function makeWaveManagerRule()
-	---@type RuleFn
-	return function (state)
+	return function (res, rej, state)
+		---@class WaveManagerState: RuleState
+		---@field running_wave string
+		---@field wave_rules Rule[]
+		---@field allFinished fun(self: WaveManagerState): bool
+		---@field waveBegin fun(self: WaveManagerState, rules: Rules, index: integer)
+		---@field waveEnded fun(self: WaveManagerState, rules: Rules, index: integer)
+
+		---@cast state WaveManagerState
 		if (state.wave_rules == nil) then
 			print("wave manager setting up...");
 			modkit.table.printTbl(
-				modkit.table.keys(wave_rules),
+				wave_rules,
 				"wave rules"
 			);
 
@@ -106,7 +117,7 @@ function makeWaveManagerRule()
 					self.wave_rules,
 					---@param rule Rule
 					function (rule)
-						return rule.status == "returned";
+						return rule.status == "resolved";
 					end
 				);
 			end
@@ -116,15 +127,15 @@ function makeWaveManagerRule()
 				---@type Rule
 				local wave_rule = self.wave_rules[index];
 				if (wave_rule ~= nil) then
-					self.running = wave_rule.id;
+					self.running_wave = wave_rule.id;
 					rules:begin(wave_rule);
 					rules:on(
-						self.running,
+						wave_rule.api_name,
 						function ()
 							%self:waveEnded(%rules, %index);
 						end
 					);
-					print("\tpattern: '" .. self.running .. "'");
+					print("\tpattern: '" .. self.running_wave .. "'");
 				else
 					print("no such rule, do nothing...");
 				end
@@ -132,16 +143,16 @@ function makeWaveManagerRule()
 
 			---@param rules Rules
 			function state:waveEnded(rules, index)
-				print("wave " .. index .. " ended, callback triggered! (pattern: '" .. self.running .. "')");
+				print("wave " .. index .. " ended, callback triggered! (pattern: '" .. self.running_wave .. "')");
 				self:waveBegin(rules, index + 1);
 			end
 		end
 
 		if (state:allFinished()) then
-			return "yata";
+			res("woop");
 		end
 
-		if (state.running == nil) then
+		if (state.running_wave == nil) then
 			print("no wave running!");
 			makeStateHandle()({
 				running_wave = -1
@@ -159,7 +170,7 @@ phase_manager_state = {};
 ---@return RuleFn
 function makePhaseManagerRule()
 	---@type RuleFn
-	return function (state, rules)
+	return function (res, rej, state, rules)
 		print("hello from phase manager!");
 		state = phase_manager_state;
 
@@ -178,7 +189,7 @@ function makePhaseManagerRule()
 					self.phase_rules,
 					---@param rule Rule
 					function (rule)
-						return rule.status == "returned";
+						return rule.status == "resolved";
 					end
 				);
 			end
@@ -272,13 +283,17 @@ function makePhaseManagerRule()
 end
 
 function makeGracePeriodRule(period)
-	return function (state)
+	return function (res, rej, state)
+		-- modkit.table.printTbl(state);
+		if (state._tick == 1) then
+			UI_SetTimerOffset("NewTaskbar", "GameTimer", -%period);
+		end
 		if (state._tick == 50) then
 			Subtitle_Message("<c=33ffff>WELCOME TO HORDE MODE!</c>", 5);
 		end
 
 		if (Universe_GameTime() >= %period) then
-			return 1;
+			res(1);
 		end
 	end;
 end

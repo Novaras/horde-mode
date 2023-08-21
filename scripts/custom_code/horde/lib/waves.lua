@@ -3,6 +3,7 @@ if (H_HORDE_WAVES == nil) then
 		---@type Wave
 		local state = makeStateHandle();
 		local wave = state().running_wave;
+		-- print("running_wave: " .. tostring(wave));
 		if (wave and type(wave) == "table") then
 			if (wave.init == nil) then
 				self:spawnWaveShips(wave);
@@ -11,6 +12,7 @@ if (H_HORDE_WAVES == nil) then
 				print("len: " .. count);
 				-- print("gt: " .. Universe_GameTime() .. " vs scheduled: " .. (wave.started_gametime + (wave.config.duration or 180)));
 
+				-- if the wave isn't finished, and all enemies are dead or the allotted duration has passed, end the wave
 				if (
 					wave.finished ~= 1 and
 					(
@@ -19,6 +21,7 @@ if (H_HORDE_WAVES == nil) then
 					)
 				) then
 					wave.finished = 1;
+					-- make sure to update on superstate
 					state({
 						running_wave = wave
 					});
@@ -58,10 +61,13 @@ if (H_HORDE_WAVES == nil) then
 		-- now define spawns
 		---@type string[]
 		local spawner_volumes = {};
-		-- for _, ship in modkit.ships():findType("horde_shipyard") do
-		-- 	ship:print();
-		-- end
-		local player_builder = modkit.ships():findType("horde_shipyard")[1] or modkit.ships():findType("hgn_carrier")[1];
+		local ships = modkit.ships();
+		
+		local player_builder = modkit.ships():findType("horde_shipyard") or modkit.ships():findType("hgn_carrier");
+		print("builder: " .. tostring(player_builder or 'nil'));
+		if (player_builder) then
+			player_builder:print();
+		end
 		for i = 1, 8 do
 			local vol_pos = {};
 			for axis, val in player_builder:position() do
@@ -82,6 +88,8 @@ if (H_HORDE_WAVES == nil) then
 		-- also, when we spawn a ship, we greate a getter fn for it
 		-- the getters are added to the superglobal state so anyone can read them
 		-- the getters return the ship definition from `modkit.ships()` if possible, else just the spawn group name
+
+		---@type (string|Ship)[]
 		local spawned_getters = {};
 		local spawned_value = 0;
 		local index_to_spawn = 0;
@@ -135,6 +143,7 @@ if (H_HORDE_WAVES == nil) then
 						return getter();
 					end
 				),
+				---@param spawned string|Ship
 				function (spawned)
 					return (spawned and type(spawned) == "table" and spawned.own_group);
 				end

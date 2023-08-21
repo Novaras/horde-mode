@@ -7,11 +7,11 @@
 
 ---@class RewardOption
 ---@field description string
----@field rus integer
----@field technology string[]
----@field power_ups PowerUp[]
----@field build_options string[]
----@field research_options string[]
+---@field rus? integer
+---@field technology? string[]
+---@field power_ups? PowerUp[]
+---@field build_options? string[]
+---@field research_options? string[]
 
 ---@class PhaseReward
 ---@field option_a RewardOption
@@ -124,15 +124,15 @@ local repair_tech_icon_layout = {
 
 ---@class _Rew
 ---@field name string
----@field requires { subsystems: string, rewards: string }
----@field description string
----@field icon { uvRect: number[], texture: string }
----@field build_options string[]
----@field research_options string[]
----@field research_grant string[]
----@field rus integer
----@field spawn SpawnInfo[]
----@field callbacks function[]
+---@field requires? { subsystems: string, rewards: string }
+---@field description? string
+---@field icon? { uvRect: number[], texture: string }
+---@field build_options? string[]
+---@field research_options? string[]
+---@field research_grant? string[]
+---@field rus? integer
+---@field spawn? SpawnInfo[]
+---@field callbacks? function[]
 
 -- <c=ff005e> for hp
 -- <c=ffd500> for production
