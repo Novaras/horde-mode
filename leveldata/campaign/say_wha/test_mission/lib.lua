@@ -75,7 +75,7 @@ function makePhaseRule(phase_index, phase, wave_manager_rule)
 				);
 			end
 
-			modkit.table.printTbl(wave_rules, "wave_rules (GLOBAL)");
+			-- modkit.table.printTbl(wave_rules, "wave_rules (GLOBAL)");
 
 			rules:begin(%wave_manager_rule);
 			rules:on(
