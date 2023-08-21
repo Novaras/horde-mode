@@ -553,4 +553,10 @@ GameScreens = {
 		activated =0, -- Activate on front end startup (default is zero)
 		type = "InGameModScreen",  -- Type of menu (default is UIScreen)
 	},
+
+	{
+		name = "MK_ConsoleScreen",
+		filename = "DATA:\\UI\\NewUI\\mk_consolescreen.lua",
+		activated = 0,
+	},
 }
